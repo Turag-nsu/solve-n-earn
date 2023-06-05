@@ -17,10 +17,11 @@ const options = {
       const dbpass = process.env.DB_PASSWORD;
       connectToDatabase(dbuser, dbpass);
       const { email, name } = profile;
+
       if (account.provider === 'google') {
         if (email.endsWith('@gmail.com')) {
           const existingUser = await userSchema.findOne({ email });
-          
+
           if (!existingUser) {
             const newUser = await userSchema.create({
               id: Math.floor(Math.random() * 10000),
@@ -28,19 +29,28 @@ const options = {
               email,
               authProvider: 'google',
             });
-            user.id = newUser.id; // Set the userId in the user object
-          }
-          else if(existingUser){
+
+            // Update the user object with the id property
+            user.id = newUser.id;
+          } else {
+            // Update the user object with the id property
             user.id = existingUser.id;
           }
-          console.log(user)
         }
+
         return profile.email_verified && email.endsWith('@gmail.com');
       }
+
       return true;
     },
-    
-       
+
+    async session(session, user) {
+      if (user) {
+        session.user.id = user.id;
+      }
+
+      return session;
+    },
   },
 };
 

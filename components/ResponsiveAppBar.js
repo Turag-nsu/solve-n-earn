@@ -81,7 +81,7 @@ const ResponsiveAppBar = () => {
     handleCloseNavMenu();
     handleCloseUserMenu();
   };
-
+  
   return (
     <AppBar position="static">
       <Container maxWidth="xl">

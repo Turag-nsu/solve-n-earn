@@ -4,19 +4,19 @@ import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 
 const StyledCard = styled(Card)(({ theme }) => ({
-  margin: theme.spacing(2), // Add margin to the entire card
+  margin: theme.spacing(2), 
   boxShadow: theme.boxShadow,
 }));
 
 const TypeTagWrapper = styled(Box)({
   display: 'flex',
-  flexWrap: 'wrap', // Allow tags to wrap to the next line if necessary
+  flexWrap: 'wrap', 
   marginBottom: '0.5rem',
 });
 
 const Tag = styled(Typography)(({ theme }) => ({
   marginRight: theme.spacing(1),
-  marginBottom: theme.spacing(1), // Add space between tags vertically
+  marginBottom: theme.spacing(1), 
   color: theme.palette.secondary.main,
   fontWeight: 600,
 }));
@@ -28,7 +28,7 @@ const Body = styled(Typography)(({ theme }) => ({
 const TotalUpvotesWrapper = styled(Box)({
   display: 'flex',
   alignItems: 'center',
-  marginBottom: '1rem', // Increase space below the total upvotes
+  marginBottom: '1rem', 
 });
 
 const UpvoteCount = styled(Typography)(({ theme }) => ({
@@ -61,16 +61,15 @@ function CardComponent(props) {
   };
   const { data:session } = useSession();
 
-  const isOwner = () =>{
-    return session.user.id === userId;
-  }
+  const USER = parseInt(session.token.sub)
+  
   return (
     <CenteredCardContainer>
       <StyledCard>
         <CardHeader
           title={title}
-          subheader={`Posted by ${userName} • ${createdAt} ${session.user.id} ${userId}`} 
-          style={{ paddingBottom: 0 }} // Reduce space below CardHeader
+          subheader={`Posted by ${userName} • ${createdAt}`} 
+          style={{ paddingBottom: 0 }}
         />
         <CardContent>
           <TypeTagWrapper>
@@ -84,7 +83,7 @@ function CardComponent(props) {
             <UpvoteLogo>Upvote</UpvoteLogo>
           </TotalUpvotesWrapper>
           <Box>
-            {session && !isOwner && (
+            {session && USER != userId && (
               <>
                 <ActionButton variant="contained" color="primary" onClick={props.onUpvote}>
                   Upvote
@@ -94,7 +93,7 @@ function CardComponent(props) {
                 </ActionButton>
               </>
             )}
-            {session && isOwner && (
+            {USER === userId && (
               <>
                 <ActionButton variant="contained" color="primary" onClick={props.onEdit}>
                   Edit
