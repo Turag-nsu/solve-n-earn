@@ -1,43 +1,41 @@
-// pages/profile/[userId].js
-
 import React from 'react';
+import { useRouter } from 'next/router';
+import useSWR from 'swr';
 import Profile from '../../components/Profile';
-import { getAllProfileIds, getProfileData } from '../api/profiles';
+import { useSession } from 'next-auth/react';
 
-const ProfilePage = ({ profileData }) => {
-  if (!profileData) {
+const fetcher = (url) => fetch(url).then((res) => res.json());
+
+const UserProfilePage = () => {
+  const router = useRouter();
+  const { userId } = router.query;
+
+  if (!userId) {
     return <div>Loading...</div>;
   }
+  const { data: session } = useSession();
+  const { data: user, error: userError } = useSWR(`/api/user/${userId}`, fetcher);
+  const { data: problems, error: problemsError } = useSWR(`/api/problem`, fetcher);
+  const userProblems = problems.filter((problem)=>{return problem.userId===parseInt(session.token.sub)})
+  if (userError || problemsError) {
+    return <div>Error fetching user data</div>;
+  }
 
+  if (!user || !problems) {
+    return <div>Loading...</div>;
+  }
+  
+  const { name, email, respectPoints } = user.user;
+  
+  
   return (
     <Profile
-      name={profileData.name}
-      bio={profileData.bio}
-      location={profileData.location}
-      email={profileData.email}
-      paymentMethod={profileData.paymentMethod}
-      posts={profileData.po}
+      name={name}
+      email={email}
+      respectPoints={respectPoints}
+      problems={userProblems}
     />
   );
 };
 
-export async function getStaticPaths() {
-  const paths = getAllProfileIds();
-  return {
-    paths,
-    fallback: false,
-  };
-}
-
-export async function getStaticProps({ params }) {
-  const { userId } = params;
-  const profileData = getProfileData(userId);
-
-  return {
-    props: {
-      profileData,
-    },
-  };
-}
-
-export default ProfilePage;
+export default UserProfilePage;

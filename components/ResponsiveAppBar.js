@@ -11,13 +11,14 @@ import {
   MenuItem,
   Avatar,
   Tooltip,
+  Button,
 } from '@mui/material';
-import { Menu as MenuIcon } from '@mui/icons-material';
+import { Menu as MenuIcon, Add as AddIcon } from '@mui/icons-material';
 import Container from '@mui/material/Container';
 import { signOut, useSession } from 'next-auth/react';
 
 const pages = ['Notification', 'Support', 'Blog'];
-const settings = ['Profile', 'Account', 'Dashboard', ];
+const settings = ['Profile', 'Account', 'Dashboard'];
 
 const StyledTypography = styled(Typography)(({ theme }) => ({
   fontFamily: 'monospace',
@@ -74,14 +75,18 @@ const ResponsiveAppBar = () => {
 
   const handleMenuClick = (path) => {
     if (path === '/Profile') {
-      router.push(`/Profile/${session.user.id}`);
+      router.push(`/Profile/${session.token.sub}`);
     } else {
       router.push(path);
     }
     handleCloseNavMenu();
     handleCloseUserMenu();
   };
-  
+
+  const handlePostProblem = () => {
+    router.push('/problem/postProblem');
+  };
+
   return (
     <AppBar position="static">
       <Container maxWidth="xl">
@@ -89,8 +94,8 @@ const ResponsiveAppBar = () => {
           <Typography
             variant="h6"
             component="a"
-            href="/HomePage"
-            onClick={() => handleMenuClick('/HomePage')}
+            href="/problem"
+            onClick={() => handleMenuClick('/problem')}
             style={{ textDecoration: 'none', color: 'inherit', marginRight: '2px', display: 'flex' }}
           >
             Solve N Earn
@@ -142,7 +147,7 @@ const ResponsiveAppBar = () => {
           <Typography
             variant="h6"
             component="a"
-            href="/HomePage"
+            href="/problem"
             onClick={() => handleMenuClick('/problem')}
             style={{
               textDecoration: 'none',
@@ -184,11 +189,11 @@ const ResponsiveAppBar = () => {
             >
               {status === 'authenticated' ? (
                 <>
-                  {(settings.map((setting) => (
+                  {settings.map((setting) => (
                     <MenuItem key={setting} onClick={() => handleMenuClick(`/${setting}`)}>
                       <Typography textAlign="center">{setting}</Typography>
                     </MenuItem>
-                  )))}
+                  ))}
                   <MenuItem onClick={handleLogout}>
                     <Typography textAlign="center">Logout</Typography>
                   </MenuItem>
@@ -200,6 +205,22 @@ const ResponsiveAppBar = () => {
               )}
             </Menu>
           </Box>
+          <Button
+            variant="contained"
+            color="secondary"
+            startIcon={<AddIcon />}
+            onClick={handlePostProblem}
+            sx={{ display: { xs: 'none', md: 'flex' }, marginLeft: '8px' }}
+          >
+            Post Problem
+          </Button>
+          <IconButton
+            onClick={handlePostProblem}
+            sx={{ display: { xs: 'flex', md: 'none' }, marginLeft: '8px' }}
+            color="inherit"
+          >
+            <AddIcon />
+          </IconButton>
         </Toolbar>
       </Container>
     </AppBar>

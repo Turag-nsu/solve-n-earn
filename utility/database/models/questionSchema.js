@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 
 const answerSchema = new mongoose.Schema({
-  id: { type: String, required: true, unique: true },
-  userId: { type: Number, required: true },
-  body: { type: String, required: true },
+  id: { type: String },
+  userId: { type: Number },
+  body: { type: String },
   upvotes: { type: Number, default: 0 },
   earnings: { type: Number, default: 0 },
 });

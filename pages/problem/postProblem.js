@@ -34,9 +34,9 @@ const PostProblem = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    const email = await session.user.email;
-
-    if (!session || !session.user) {
+    const email = await session.token.email;
+    
+    if (!session || !session.session.user) {
       console.log('User is not logged in');
       return;
     }
@@ -61,7 +61,7 @@ const PostProblem = () => {
 
     setIsLoading(false);
   };
-
+  console.log(session)
   if (status === 'loading') {
     return (
       <Container maxWidth="md">

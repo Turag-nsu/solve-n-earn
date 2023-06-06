@@ -1,16 +1,20 @@
-import { Box, Typography } from '@mui/material';
+import React from 'react';
+import { Box, Typography, useTheme } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import CardComponent from './CardComponent';
+import { useSession } from 'next-auth/react';
+import { formatDistanceToNow } from 'date-fns';
 
-const StyledAvatar = styled('div')({
+const StyledAvatar = styled('div')(({ theme }) => ({
   width: '80px',
   height: '80px',
   margin: '0 auto',
-  backgroundColor: 'blue',
+  backgroundColor: theme.palette.primary.main,
   borderRadius: '50%',
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
-});
+}));
 
 const Avatar = () => {
   return (
@@ -22,57 +26,40 @@ const Avatar = () => {
   );
 };
 
-const UserInfoWrapper = styled(Box)({
+const UserInfoWrapper = styled(Box)(({ theme }) => ({
+  marginTop: '2rem',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   padding: '16px',
-  backgroundColor: 'background.paper',
+  backgroundColor: theme.palette.background.paper,
   borderRadius: '4px',
-});
+}));
 
-const Name = styled(Typography)({
+const Name = styled(Typography)(({ theme }) => ({
   fontSize: '1.25rem',
   fontWeight: 600,
   marginBottom: '8px',
-});
+  color: theme.palette.text.primary,
+}));
 
-const Bio = styled(Typography)({
-  fontSize: '1rem',
-  marginBottom: '8px',
-});
-
-const Location = styled(Typography)({
+const Email = styled(Typography)(({ theme }) => ({
   fontSize: '0.875rem',
-  color: 'text.secondary',
+  color: theme.palette.text.secondary,
   marginBottom: '8px',
-});
+}));
 
-const Email = styled(Typography)({
-  fontSize: '0.875rem',
-  color: 'text.secondary',
-  marginBottom: '8px',
-});
+const UserInfo = ({ name, email, respectPoints }) => {
+  const theme = useTheme();
 
-const PaymentMethod = styled(Typography)({
-  fontSize: '0.875rem',
-  color: 'text.secondary',
-});
-
-const UserInfo = ({ name, bio, location, email, paymentMethod }) => {
   return (
     <UserInfoWrapper>
       <Name>{name}</Name>
-      <Bio>{bio}</Bio>
-      <Location>{location}</Location>
+      <Name>{`Respectpoints: ${respectPoints}`}</Name>
       <Email>{email}</Email>
-      <PaymentMethod>{paymentMethod}</PaymentMethod>
     </UserInfoWrapper>
   );
 };
-
-import CardComponent from './CardComponent';
-
 
 const UserStatsWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -89,50 +76,60 @@ const StatWrapper = styled(Box)({
 });
 
 const StatIcon = styled(Box)(({ theme }) => ({
-  borderRadius: '50%',
+  borderRadius: '2%',
   backgroundColor: theme.palette.primary.main,
   marginRight: '8px',
-  width: '32px',
-  height: '32px',
+  // width: '32px',
+  // height: '32px',
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
 }));
 
-const UserStats = ({ postCount, posts }) => {
+const UserStats = ({ problems }) => {
+  const theme = useTheme();
+  const { data: session } = useSession();
+
+  if (!Array.isArray(problems)) {
+    return <div>No problems found</div>;
+  }
+
   return (
     <UserStatsWrapper>
       <StatWrapper>
-        <StatIcon>
+        {/* <StatIcon>
           <Typography variant="h6" color="textSecondary">
-            {postCount}
+            Respect Points: {}
           </Typography>
-        </StatIcon>
-        <Typography variant="h6" color="textSecondary">
+        </StatIcon> */}
+        <Typography variant="h6" color="white">
           Posts
         </Typography>
       </StatWrapper>
       <Box sx={{ width: '100%', maxHeight: '500px', overflow: 'auto' }}>
-        {posts.map((post) => (
-            <CardComponent
-            key={post.id}
-            title={post.title}
-            type={post.type}
-            tag={post.tag}
-            body={post.body}
-            totalUpvotes={post.totalUpvotes}
-            onClick={post.onClick}
-            loggedInUser = {true}
-            isOwner = {true}
-            />
-         
-        ))}
+        {problems.map((post) => {
+          const createdAt = new Date(parseInt(post._id.toString().substring(0, 8), 16) * 1000);
+          const formattedCreatedAt = formatDistanceToNow(createdAt, { addSuffix: true });
+
+          return (
+            <React.Fragment key={post.id}>
+              <CardComponent
+                title={post.title}
+                type={post.type}
+                tag={post.tag}
+                body={post.body}
+                totalUpvotes={post.totalUpvotes}
+                onClick={post.onClick}
+                userId={post.userId}
+                userName={`user`}
+                createdAt={formattedCreatedAt}
+              />
+            </React.Fragment>
+          );
+        })}
       </Box>
     </UserStatsWrapper>
   );
 };
-
-export default UserStats;
-
 
 export { Avatar, UserInfo, UserStats };
