@@ -10,7 +10,7 @@ function fetcher(url) {
 
 const ProblemIndex = () => {
   const { data: problems, error } = useSWR('/api/problem', fetcher, {
-    refreshInterval: 120000, // Refresh every 2 minutes
+    refreshInterval: 120000, 
   });
 
   const [problemList, setProblemList] = useState([]);
@@ -42,7 +42,7 @@ const ProblemIndex = () => {
         if (problem.probId === probId) {
           return {
             ...problem,
-            totalUpvotes: problem.totalUpvotes + 1,
+            upvotes: problem.upvotes + 1,
             respectPoints: problem.respectPoints + respectPoints * 0.1,
           };
         }
@@ -76,8 +76,7 @@ const ProblemIndex = () => {
               type={problem.type}
               tags={problem.tags}
               body={problem.body}
-              totalUpvotes={problem.totalUpvotes}
-              respectPoints={problem.respectPoints}
+              totalUpvotes={problem.upvotes}
               userName={problem.userName || 'Unknown User'}
               createdAt={formattedCreatedAt}
               userId={problem.userId}

@@ -4,6 +4,7 @@ import { styled } from '@mui/material/styles';
 import { useRouter } from 'next/router';
 
 import { useSession } from 'next-auth/react';
+import { TryRounded } from '@mui/icons-material';
 
 const StyledCard = styled(Card)(({ theme }) => ({
   margin: theme.spacing(2),
@@ -55,7 +56,7 @@ const ActionButton = styled(Button)(({ theme }) => ({
 }));
 
 function CardComponent(props) {
-  const { probId, title, tags, body, totalUpvotes, userName, createdAt, userId } = props;
+  const { probId, title, tags, body, totalUpvotes, problemStatus, userName, createdAt, userId } = props;
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -65,11 +66,32 @@ function CardComponent(props) {
   const onOpenProblem = () => {
     router.push(`/problem/${probId}`);
   };
-
+  const handleOnMarkAsSolved = async () => {
+    const currentUserId = await session.token.sub;
+    try {
+      const response = await fetch(`/api/problem/${probId}?action=mark-as-solved`, {
+        method: 'POST',
+        body: JSON.stringify({ currentUserId }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`Problem marked as solved: ${probId}`);
+      } else {
+        console.error(`Error marking problem as solved: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error marking problem as solved:', error);
+    }
+  };
+  
   const handleUpvote = async () => {
     if (!session) {
-      // Handle the case when the user is not logged in
-      router.push('/login'); // Replace with your login page route
+      
+      router.push('/login');
       return;
     }
     const currentUserId = await session.token.sub;
@@ -80,11 +102,11 @@ function CardComponent(props) {
   
       const respectPointsToAdd = userData.user.respectPoints * 0.1; // 10% of user's respect points
   
-      // Update the local state
+      
       setIsUpvoted(true);
   
-      // Call the API to increase totalUpvotes and respectPoints
-      const upvoteResponse = await fetch(`/api/problem/upvote/${probId}`, {
+      
+      const upvoteResponse = await fetch(`/api/problem/${probId}?action=upvote`, {
         method: 'POST',
         body: JSON.stringify({ respectPointsToAdd, userId }),
         headers: {
@@ -100,10 +122,64 @@ function CardComponent(props) {
       console.error('Error upvoting:', error);
     }
   };
+  const handleOnEdit = async () => {
+    if (!session) {
+      // Handle the case when the user is not logged in
+      router.push('/login'); // Replace with your login page route
+      return;
+    }
+    
+    try {
+      // Fetch the problem data for editing
+      const response = await fetch(`/api/problem/${probId}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Redirect to the edit page with the problem data
+        router.push(`/edit/${probId}`);
+      } else {
+        // Handle the case when the problem data cannot be fetched
+        console.error('Error fetching problem data:', data.error);
+      }
+    } catch (error) {
+      // Handle the error as needed
+      console.error('Error editing problem:', error);
+    }
+  };
+  const handleOnDelete = async () => {
+    if (!session) {
+      // Handle the case when the user is not logged in
+      router.push('/login'); // Replace with your login page route
+      return;
+    }
+    
+    const currentUserId = session.token.sub;
+    
+    try {
+      // Send a DELETE request to delete the problem
+      const response = await fetch(`/api/problem/${probId}`, {
+        method: 'DELETE',
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Handle the successful deletion of the problem
+        console.log('Problem deleted successfully');
+        // Redirect to a relevant page, e.g., the homepage
+        router.push('/problem');
+      } else {
+        // Handle the case when the problem deletion fails
+        console.error('Error deleting problem:', data.error);
+      }
+    } catch (error) {
+      // Handle the error as needed
+      console.error('Error deleting problem:', error);
+    }
+  };
   
-  
+  // console.log(parseInt(session.token.sub), userId)
 
-  return (
+  return (problemStatus!==`solved`)&&(
     <CenteredCardContainer>
       <StyledCard>
         <CardHeader
@@ -124,25 +200,26 @@ function CardComponent(props) {
             <UpvoteLogo>Upvote</UpvoteLogo>
           </TotalUpvotesWrapper>
           <Box>
-            {session && session.token.sub !== userId && !isUpvoted && (
+            {session && parseInt(session.token.sub) !== userId &&  (
               <>
-                <ActionButton variant="contained" color="primary" onClick={handleUpvote}>
+                {!isUpvoted &&(<ActionButton variant="contained" color="primary" onClick={handleUpvote}>
                   Upvote
-                </ActionButton>
+                </ActionButton>)}
                 <ActionButton variant="contained" color="secondary" onClick={onOpenProblem}>
                   Solve
                 </ActionButton>
               </>
             )}
-            {session && session.token.sub === userId && (
+            
+            {session && parseInt(session.token.sub) === userId && (
               <>
-                <ActionButton variant="contained" color="primary" onClick={props.onEdit}>
+                <ActionButton variant="contained" color="primary" onClick={handleOnEdit}>
                   Edit
                 </ActionButton>
-                <ActionButton variant="contained" color="secondary" onClick={props.onDelete}>
+                <ActionButton variant="contained" color="secondary" onClick={handleOnDelete}>
                   Delete
                 </ActionButton>
-                <ActionButton variant="contained" onClick={props.onMarkAsSolved}>
+                <ActionButton variant="contained" onClick={handleOnMarkAsSolved}>
                   Mark as Solved
                 </ActionButton>
               </>

@@ -35,7 +35,7 @@ const theme = createTheme({
   
 const AdminPage = () => {
     const {data: session} = useSession();
-    const isAdmin = session?.token?.email === 'nsu.turag@gmail.com';
+    const isAdmin = session?.token?.email == "nsu.turag@gmail.com";
     const [users, setUsers] = useState([]);
     const [questions, setQuestions] = useState([]);
     const [searchUserInput, setSearchUserInput] = useState('');
@@ -146,7 +146,6 @@ const AdminPage = () => {
             .catch((error) => console.error(error));
     };
 
-    // Edit answer (update body, upvotes, earnings)
     const editAnswer = () => {
         fetch(`/api/admin/questions/${editQuestionId}/answers/${editAnswerId}`, {
             method: 'PUT',

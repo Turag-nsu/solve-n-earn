@@ -55,7 +55,7 @@ const UserInfo = ({ name, email, respectPoints }) => {
   return (
     <UserInfoWrapper>
       <Name>{name}</Name>
-      <Name>{`Respectpoints: ${respectPoints}`}</Name>
+      <Name>{`Respectpoints: ${respectPoints.toFixed(2)}`}</Name>
       <Email>{email}</Email>
     </UserInfoWrapper>
   );
@@ -79,8 +79,6 @@ const StatIcon = styled(Box)(({ theme }) => ({
   borderRadius: '2%',
   backgroundColor: theme.palette.primary.main,
   marginRight: '8px',
-  // width: '32px',
-  // height: '32px',
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
@@ -114,11 +112,12 @@ const UserStats = ({ problems }) => {
           return (
             <React.Fragment key={post.id}>
               <CardComponent
+                probId={post.id}
                 title={post.title}
                 type={post.type}
                 tag={post.tag}
                 body={post.body}
-                totalUpvotes={post.totalUpvotes}
+                totalUpvotes={post.upvotes}
                 onClick={post.onClick}
                 userId={post.userId}
                 userName={`user`}
