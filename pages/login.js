@@ -29,7 +29,10 @@ export default function Login() {
   const handleSignIn = async () => {
     await signIn('google');
   };
-
+  
+  if (session) {
+    router.replace('/');
+  }
   return (
     <StyledContainer>
       <Typography variant="h3" component="h3" align="center" gutterBottom>
