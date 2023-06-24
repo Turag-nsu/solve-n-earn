@@ -4,7 +4,7 @@ import userSchema from '@/utility/database/models/userSchema';
 import connectToDatabase from '@/utility/database/databaseConnection';
 
 const options = {
-  secret: 'secret5329',
+  secret: process.env.GOOGLE_CLIENT_SECRET,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
