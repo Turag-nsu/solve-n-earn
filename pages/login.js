@@ -15,8 +15,8 @@ const StyledButton = styled(Button)({
 });
 
 export default function Login() {
-  const handleSignIn = () => {
-    signIn('google');
+  const handleSignIn = async () => {
+    await signIn('google');
   };
 
   return (
@@ -34,7 +34,7 @@ export default function Login() {
 export async function getServerSideProps(context) {
   const session = await getSession(context);
   if (session) {
-    // If the user is already authenticated, redirect to the home page
+
     return {
       redirect: {
         destination: '/',
