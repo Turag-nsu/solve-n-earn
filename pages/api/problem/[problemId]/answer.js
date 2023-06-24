@@ -1,5 +1,4 @@
 import Question from '@/utility/database/models/questionSchema';
-import User from '@/utility/database/models/userSchema';
 import connectToDatabase from '@/utility/database/databaseConnection';
 
 export default async function handler(req, res) {
@@ -45,7 +44,6 @@ export default async function handler(req, res) {
           body: answerBody,
           upvotes: 0,
           earnings: 0,
-          createdAt: new Date().toISOString(),
         };
 
         console.log(answer);
@@ -54,62 +52,6 @@ export default async function handler(req, res) {
         await problem.save();
 
         res.status(200).json({ message: 'Answer submitted successfully', answer });
-      } else {
-        res.status(404).json({ error: 'Problem not found' });
-      }
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  } else if (req.method === 'PUT') {
-    try {
-      const dbuser = process.env.DB_USERNAME;
-      const dbpass = process.env.DB_PASSWORD;
-      await connectToDatabase(dbuser, dbpass);
-
-      const { answerId, answerBody } = req.body;
-
-      const problem = await Question.findOne({ id: problemId });
-
-      if (problem) {
-        const answer = problem.answers.find((a) => a.id === answerId);
-
-        if (answer) {
-          answer.body = answerBody;
-          await problem.save();
-
-          res.status(200).json({ message: 'Answer updated successfully', answer });
-        } else {
-          res.status(404).json({ error: 'Answer not found' });
-        }
-      } else {
-        res.status(404).json({ error: 'Problem not found' });
-      }
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  } else if (req.method === 'DELETE') {
-    try {
-      const dbuser = process.env.DB_USERNAME;
-      const dbpass = process.env.DB_PASSWORD;
-      await connectToDatabase(dbuser, dbpass);
-
-      const { answerId } = req.body;
-
-      const problem = await Question.findOne({ id: problemId });
-
-      if (problem) {
-        const answerIndex = problem.answers.findIndex((a) => a.id === answerId);
-
-        if (answerIndex !== -1) {
-          problem.answers.splice(answerIndex, 1);
-          await problem.save();
-
-          res.status(200).json({ message: 'Answer deleted successfully' });
-        } else {
-          res.status(404).json({ error: 'Answer not found' });
-        }
       } else {
         res.status(404).json({ error: 'Problem not found' });
       }

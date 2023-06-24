@@ -215,7 +215,7 @@ export default function ProblemPage({ problemData }) {
 
 export async function getServerSideProps({ params }) {
   const { problemId } = params;
-  const problemResponse = await fetch(`http://localhost:3000/api/problem/${problemId}`);
+  const problemResponse = await fetch(`https://solve-n-earn.vercel.app/api/problem/${problemId}`);
 
   if (!problemResponse.ok) {
     return {
