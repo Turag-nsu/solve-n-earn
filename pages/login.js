@@ -1,4 +1,6 @@
-import { signIn, getSession } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { Button, Container, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
@@ -15,6 +17,15 @@ const StyledButton = styled(Button)({
 });
 
 export default function Login() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      router.replace('/');
+    }
+  }, [status, session, router]);
+
   const handleSignIn = async () => {
     await signIn('google');
   };
@@ -29,21 +40,4 @@ export default function Login() {
       </StyledButton>
     </StyledContainer>
   );
-}
-
-export async function getServerSideProps(context) {
-  const session = await getSession(context);
-  if (session) {
-
-    return {
-      redirect: {
-        destination: '/',
-        permanent: false,
-      },
-    };
-  }
-
-  return {
-    props: {},
-  };
 }

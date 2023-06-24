@@ -70,7 +70,7 @@ const ResponsiveAppBar = () => {
   };
 
   const handleLogout = () => {
-    signOut({ callbackUrl: 'http://localhost:3000/login' });
+    signOut({ callbackUrl: 'https://solve-n-earn.vercel.app/login' });
   };
 
   const handleMenuClick = (path) => {
