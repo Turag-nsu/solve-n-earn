@@ -17,6 +17,21 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'User not found' });
     }
 
+    if (req.method === 'PUT') {
+      const { name } = req.body;
+
+      // Update user's name
+      user.name = name;
+      await user.save();
+
+      return res.status(200).json({ user });
+    } else if (req.method === 'DELETE') {
+      // Delete the user
+      await User.deleteOne({ id: userId }).exec();
+
+      return res.status(200).json({ message: 'User deleted successfully' });
+    }
+
     res.status(200).json({ user });
   } catch (error) {
     console.error(error);
