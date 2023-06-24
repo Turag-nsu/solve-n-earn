@@ -4,6 +4,7 @@ import userSchema from '@/utility/database/models/userSchema';
 import connectToDatabase from '@/utility/database/databaseConnection';
 
 const options = {
+  secret: 'secret5329',
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
@@ -30,10 +31,10 @@ const options = {
               authProvider: 'google',
             });
 
-            // Update the user object with the id property
+            
             user.id = newUser.id;
           } else {
-            // Update the user object with the id property
+            
             user.id = existingUser.id;
           }
         }
