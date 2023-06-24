@@ -14,6 +14,7 @@ const ProblemIndex = () => {
   });
 
   const [problemList, setProblemList] = useState([]);
+  const [searchValue, setSearchValue] = useState(""); // New state to hold the search value
 
   useEffect(() => {
     if (problems) {
@@ -52,6 +53,16 @@ const ProblemIndex = () => {
     }
   };
 
+  const handleSearch = (value) => {
+    setSearchValue(value); // Update the search value
+  };
+
+  // Filter the problem list based on the search value
+  const filteredProblems = problemList.filter((problem) =>
+    problem.title.toLowerCase().includes(searchValue.toLowerCase())||
+    problem.body.toLowerCase().includes(searchValue.toLowerCase())
+  );
+
   if (!problems) {
     return <div>Loading...</div>;
   }
@@ -62,8 +73,8 @@ const ProblemIndex = () => {
 
   return (
     <div>
-      <AnimatedSearchBox />
-      {problemList.map((problem) => {
+      <AnimatedSearchBox onSearch={handleSearch} />
+      {filteredProblems.map((problem) => {
         const createdAt = new Date(parseInt(problem._id.toString().substring(0, 8), 16) * 1000);
         const formattedCreatedAt = formatDistanceToNow(createdAt, { addSuffix: true });
 

@@ -41,12 +41,14 @@ const SearchInput = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-function AnimatedSearchBox() {
+
+function AnimatedSearchBox({ onSearch }) {
   const [searchValue, setSearchValue] = React.useState("");
 
   const handleInputChange = (event) => {
-    setSearchValue(event.target.value);
-    console.log(searchValue)
+    const value = event.target.value;
+    setSearchValue(value);
+    onSearch(value); // Invoke the callback function with the updated search value
   }
 
   return (

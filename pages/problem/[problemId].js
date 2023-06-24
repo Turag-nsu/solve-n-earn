@@ -9,6 +9,11 @@ import {
   Button,
   useMediaQuery,
 } from '@mui/material';
+import { formatDistanceToNow } from 'date-fns';
+import useSWR, { mutate } from 'swr';
+
+import CardComponent from '../../components/CardComponent';
+import AnswerCard from '../../components/AnswerCard';
 
 const theme = createTheme({
   palette: {
@@ -40,11 +45,10 @@ const StyledButton = styled(Button)(({ theme }) => ({
   marginBottom: theme.spacing(2),
 }));
 
-export default function ProblemPage() {
+export default function ProblemPage({ problemData }) {
   const router = useRouter();
   const { problemId } = router.query;
   const { data: session } = useSession();
-  const [problem, setProblem] = useState(null);
   const [answer, setAnswer] = useState('');
 
   const fetchProblemDetails = async () => {
@@ -52,7 +56,7 @@ export default function ProblemPage() {
       const response = await fetch(`/api/problem/${problemId}`);
       if (response.ok) {
         const problemData = await response.json();
-        setProblem(problemData);
+        mutate(`/api/problem/${problemId}`, problemData);
       } else {
         console.error('Error fetching problem details:', response.statusText);
       }
@@ -62,33 +66,28 @@ export default function ProblemPage() {
   };
 
   useEffect(() => {
-    if (problemId) {
-      fetchProblemDetails();
-    }
+    fetchProblemDetails();
   }, [problemId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const token = localStorage.getItem('token');
-    const requestBody = {
-      answeringUserId: session?.token?.sub,
-      answerBody: answer,
-    };
-
     try {
       const response = await fetch(`/api/problem/${problemId}/answer`, {
         method: 'POST',
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({
+          answeringUserId: session?.token?.sub,
+          answerBody: answer,
+        }),
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
       });
 
       if (response.ok) {
         console.log('Answer submitted successfully');
-        fetchProblemDetails();
+        mutate(`/api/problem/${problemId}`);
+        setAnswer('');
       } else {
         console.error('Error submitting answer:', response.statusText);
       }
@@ -97,28 +96,94 @@ export default function ProblemPage() {
     }
   };
 
+  const handleAnswerUpdate = async (answerId, newAnswerBody) => {
+    try {
+      const response = await fetch(`/api/problem/${problemId}/answer`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          answerId,
+          answerBody: newAnswerBody,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        console.log('Answer updated successfully');
+        mutate(`/api/problem/${problemId}`);
+      } else {
+        console.error('Error updating answer:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error updating answer:', error);
+    }
+  };
+
+  const handleAnswerDelete = async (answerId) => {
+    try {
+      const response = await fetch(`/api/problem/${problemId}/answer`, {
+        method: 'DELETE',
+        body: JSON.stringify({
+          answerId,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        console.log('Answer deleted successfully');
+        mutate(`/api/problem/${problemId}`);
+      } else {
+        console.error('Error deleting answer:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error deleting answer:', error);
+    }
+  };
+
+  const fetcher = (url) => fetch(url).then((res) => res.json());
+  const { data: user, error: problemError } = useSWR(
+    problemId ? `/api/user/${problemData.userId}` : null,
+    fetcher
+  );
+
+  const createdAt = new Date(parseInt(problemData._id.toString().substring(0, 8), 16) * 1000);
+  const formattedCreatedAt = formatDistanceToNow(createdAt, { addSuffix: true });
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+  const problem = problemData;
+    // console.log(problem);
   return (
     <ThemeProvider theme={theme}>
       <StyledContainer maxWidth="md">
-        {problem ? (
+        {problemData ? (
           <>
-            <StyledTypography variant="h4" component="h1" align="center">
-              Problem Details
-            </StyledTypography>
-            <StyledTypography variant="h5" component="h2" align="center">
-              Problem ID: {problem.id}
-            </StyledTypography>
+            <CardComponent
+              probId={problem.id}
+              title={problem.title}
+              tags={problem.tags}
+              body={problem.body}
+              totalUpvotes={problem.totalUpvotes}
+              problemStatus={problem.status}
+              userName={user?.user?.name}
+              createdAt={formattedCreatedAt}
+              userId={problem.userId}
+            />
+
             <StyledTypography variant="h6" component="h3" align="center">
-              {problem.title}
+              Answers
             </StyledTypography>
-            <StyledTypography variant="body1" align="center">
-              {problem.body}
-            </StyledTypography>
-            <StyledTypography variant="body2" align="center">
-              Tags: {problem.tags.join(', ')}
-            </StyledTypography>
+            {problem.answers.map((answer) => (
+              <AnswerCard
+                key={answer.id}
+                answer={answer}
+                currentUserId={parseInt(session?.token?.sub)}
+                onAnswerUpdate={handleAnswerUpdate}
+                onAnswerDelete={handleAnswerDelete}
+              />
+            ))}
 
             <StyledTypography variant="h6" component="h3" align="center">
               Submit Your Answer
@@ -146,4 +211,23 @@ export default function ProblemPage() {
       </StyledContainer>
     </ThemeProvider>
   );
+}
+
+export async function getServerSideProps({ params }) {
+  const { problemId } = params;
+  const problemResponse = await fetch(`http://localhost:3000/api/problem/${problemId}`);
+
+  if (!problemResponse.ok) {
+    return {
+      notFound: true,
+    };
+  }
+
+  const problemData = await problemResponse.json();
+
+  return {
+    props: {
+      problemData,
+    },
+  };
 }

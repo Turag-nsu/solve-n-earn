@@ -16,7 +16,8 @@ const UserProfilePage = () => {
   const { data: session } = useSession();
   const { data: user, error: userError } = useSWR(`/api/user/${userId}`, fetcher);
   const { data: problems, error: problemsError } = useSWR(`/api/problem`, fetcher);
-  const userProblems = problems.filter((problem)=>{return problem.userId===parseInt(session.token.sub)})
+  const userProblems = problems && problems.filter((problem) => problem.userId == userId);
+  // console.log(userId, problem.userId)
   if (userError || problemsError) {
     return <div>Error fetching user data</div>;
   }
@@ -24,10 +25,9 @@ const UserProfilePage = () => {
   if (!user || !problems) {
     return <div>Loading...</div>;
   }
-  
+
   const { name, email, respectPoints } = user.user;
-  
-  
+
   return (
     <Profile
       name={name}
