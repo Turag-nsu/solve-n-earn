@@ -173,19 +173,21 @@ export default function ProblemPage({ initialProblemData }) {
   );
 }
 
+
 export async function getStaticPaths() {
   // Fetch the list of problem IDs from the database
   const response = await axios.get('https://solve-n-earn.vercel.app/api/problem/');
   const problemIds = response.data;
 
   // Generate the paths using the problem IDs
-  const paths = problemIds?.map((id) => ({ params: { problemId: id.toString() } }));
+  const paths = problemIds?.map((problemId) => ({ params: { id: problemId } })); // Modify this line
 
   return {
     paths,
     fallback: true, // Show fallback UI while generating static pages
   };
 }
+
 
 export async function getStaticProps({ params }) {
   const problemId = params.problemId;
