@@ -10,9 +10,7 @@ const UserProfilePage = ({ initialData }) => {
   const router = useRouter();
   const { userId } = router.query;
 
-  // if (!userId) {
-  //   return <div>Loading...</div>;
-  // }
+  
   
   const { data: session } = useSession();
   const { data: user, error: userError } = useSWR(`/api/user/${userId}`, fetcher, {
