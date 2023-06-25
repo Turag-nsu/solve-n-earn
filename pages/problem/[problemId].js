@@ -45,7 +45,7 @@ const StyledButton = styled(Button)(({ theme }) => ({
   marginBottom: theme.spacing(2),
 }));
 
-const ProblemPage({ problemData }) {
+export default function ProblemPage({ problemData }) {
   const router = useRouter();
   const { problemId } = router.query;
   const { data: session } = useSession();
@@ -212,10 +212,10 @@ const ProblemPage({ problemData }) {
     </ThemeProvider>
   );
 }
-export default ProblemPage;
+
 export async function getServerSideProps({ params }) {
   const { problemId } = params;
-  const problemResponse = await fetch(`https://solve-n-earn.vercel.app/api/problem/${problemId}`);
+  const problemResponse = await fetch(`https://solve-n-earn.vercel.app//api/problem/${problemId}`);
 
   if (!problemResponse.ok) {
     return {
