@@ -2,7 +2,7 @@ import { useRouter } from 'next/router';
 import useSWR from 'swr';
 import Profile from '../../components/Profile';
 import { useSession, getSession } from 'next-auth/react';
-import { Typography } from '@mui/material';
+// import { Typography } from '@mui/material';
 
 const fetcher = (url) => fetch(url).then((res) => res.json());
 
@@ -10,9 +10,9 @@ const UserProfilePage = ({ initialData }) => {
   const router = useRouter();
   const { userId } = router.query;
 
-  if (!userId) {
-    return <div>Loading...</div>;
-  }
+  // if (!userId) {
+  //   return <div>Loading...</div>;
+  // }
   
   const { data: session } = useSession();
   const { data: user, error: userError } = useSWR(`/api/user/${userId}`, fetcher, {
