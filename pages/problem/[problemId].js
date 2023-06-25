@@ -47,7 +47,7 @@ export default function ProblemPage({ initialProblemData }) {
 
   const fetcher = (url) => fetch(url).then((res) => res.json());
   const { data: problemData, mutate: mutateProblemData } = useSWR(
-    problemId ? `/api/problem/${problemId}` : null,
+    problemId ? `https://solve-n-earn.vercel.app/api/problem/${problemId}` : null,
     fetcher,
     { initialData: initialProblemData } // Set initial data from props
   );
@@ -206,11 +206,11 @@ export async function getStaticProps({ params }) {
 
   // Fetch initial data for the problem page from the database
   const initialProblemData = await fetch(`https://solve-n-earn.vercel.app/api/problem/${problemId}`).then((res) => res.json());
-
+  console.log(initialProblemData);
   return {
     props: {
       initialProblemData,
     },
-    revalidate: 1, // Revalidate the page every 1 second
+    revalidate: 10, // Revalidate the page every 10 second
   };
 }
