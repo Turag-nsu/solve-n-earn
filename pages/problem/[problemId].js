@@ -1,15 +1,8 @@
-
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
-import {
-  Container,
-  Typography,
-  TextField,
-  Button,
-  useMediaQuery,
-} from '@mui/material';
+import { Container, Typography, TextField, Button, useMediaQuery } from '@mui/material';
 import { formatDistanceToNow } from 'date-fns';
 import useSWR, { mutate } from 'swr';
 
@@ -46,7 +39,7 @@ const StyledButton = styled(Button)(({ theme }) => ({
   marginBottom: theme.spacing(2),
 }));
 
-export default function ProblemPage() {
+export default function ProblemPage({ initialProblemData }) {
   const router = useRouter();
   const { problemId } = router.query;
   const { data: session } = useSession();
@@ -56,7 +49,7 @@ export default function ProblemPage() {
   const { data: problemData, mutate: mutateProblemData } = useSWR(
     problemId ? `/api/problem/${problemId}` : null,
     fetcher,
-    { revalidateOnFocus: false } // Set revalidateOnFocus to false to prevent re-fetching on focus
+    { initialData: initialProblemData } // Set initial data from props
   );
 
   const handleSubmit = async (e) => {
@@ -193,4 +186,31 @@ export default function ProblemPage() {
       </StyledContainer>
     </ThemeProvider>
   );
+}
+
+export async function getStaticPaths() {
+  // Fetch the list of problem IDs from the database
+  const problemIds = await fetch('https://solve-n-earn.vercel.app/api/problem/').then((res) => res.json());
+
+  // Generate the paths using the problem IDs
+  const paths = problemIds?.map((id) => ({ params: { problemId: id.toString() } }));
+
+  return {
+    paths,
+    fallback: true, // Show fallback UI while generating static pages
+  };
+}
+
+export async function getStaticProps({ params }) {
+  const problemId = params.problemId;
+
+  // Fetch initial data for the problem page from the database
+  const initialProblemData = await fetch(`https://solve-n-earn.vercel.app/api/problem/${problemId}`).then((res) => res.json());
+
+  return {
+    props: {
+      initialProblemData,
+    },
+    revalidate: 1, // Revalidate the page every 1 second
+  };
 }
