@@ -47,7 +47,7 @@ export default function ProblemPage({ initialProblemData }) {
 
   const fetcher = (url) => fetch(url).then((res) => res.json());
   const { data: problemData, mutate: mutateProblemData } = useSWR(
-    problemId ? `https://solve-n-earn.vercel.app/api/problem/${problemId}` : null,
+    problemId ? `/api/problem/${problemId}` : null,
     fetcher,
     { initialData: initialProblemData } // Set initial data from props
   );
