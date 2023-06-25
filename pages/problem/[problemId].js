@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import { Container, Typography, TextField, Button, useMediaQuery } from '@mui/material';
 import { formatDistanceToNow } from 'date-fns';
+import axios from 'axios';
 import useSWR, { mutate } from 'swr';
 
 import CardComponent from '../../components/CardComponent';
@@ -45,7 +46,11 @@ export default function ProblemPage({ initialProblemData }) {
   const { data: session } = useSession();
   const [answer, setAnswer] = useState('');
 
-  const fetcher = (url) => fetch(url).then((res) => res.json());
+  const fetcher = async (url) => {
+    const response = await axios.get(url);
+    return response.data;
+  };
+
   const { data: problemData, mutate: mutateProblemData } = useSWR(
     problemId ? `/api/problem/${problemId}` : null,
     fetcher,
@@ -56,18 +61,12 @@ export default function ProblemPage({ initialProblemData }) {
     e.preventDefault();
 
     try {
-      const response = await fetch(`/api/problem/${problemId}/answer`, {
-        method: 'POST',
-        body: JSON.stringify({
-          answeringUserId: session?.token?.sub,
-          answerBody: answer,
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await axios.post(`/api/problem/${problemId}/answer`, {
+        answeringUserId: session?.token?.sub,
+        answerBody: answer,
       });
 
-      if (response.ok) {
+      if (response.status === 200) {
         console.log('Answer submitted successfully');
         mutateProblemData(); // Trigger revalidation of problem data
         setAnswer('');
@@ -81,18 +80,12 @@ export default function ProblemPage({ initialProblemData }) {
 
   const handleAnswerUpdate = async (answerId, newAnswerBody) => {
     try {
-      const response = await fetch(`/api/problem/${problemId}/answer`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          answerId,
-          answerBody: newAnswerBody,
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await axios.put(`/api/problem/${problemId}/answer`, {
+        answerId,
+        answerBody: newAnswerBody,
       });
 
-      if (response.ok) {
+      if (response.status === 200) {
         console.log('Answer updated successfully');
         mutate(`/api/problem/${problemId}`);
       } else {
@@ -105,17 +98,13 @@ export default function ProblemPage({ initialProblemData }) {
 
   const handleAnswerDelete = async (answerId) => {
     try {
-      const response = await fetch(`/api/problem/${problemId}/answer`, {
-        method: 'DELETE',
-        body: JSON.stringify({
+      const response = await axios.delete(`/api/problem/${problemId}/answer`, {
+        data: {
           answerId,
-        }),
-        headers: {
-          'Content-Type': 'application/json',
         },
       });
 
-      if (response.ok) {
+      if (response.status === 200) {
         console.log('Answer deleted successfully');
         mutate(`/api/problem/${problemId}`);
       } else {
@@ -184,17 +173,32 @@ export default function ProblemPage({ initialProblemData }) {
   );
 }
 
-export async function getServerSideProps({ params }) {
+export async function getStaticPaths() {
+  // Fetch the list of problem IDs from the database
+  const response = await axios.get('https://solve-n-earn.vercel.app/api/problem/');
+  const problemIds = response.data;
+
+  // Generate the paths using the problem IDs
+  const paths = problemIds?.map((id) => ({ params: { problemId: id.toString() } }));
+
+  return {
+    paths,
+    fallback: true, // Show fallback UI while generating static pages
+  };
+}
+
+export async function getStaticProps({ params }) {
   const problemId = params.problemId;
 
   // Fetch initial data for the problem page from the database
-  const initialProblemData = await fetch(`https://solve-n-earn.vercel.app/api/problem/${problemId}`).then((res) =>
-    res.json()
-  );
+  const response = await axios.get(`https://solve-n-earn.vercel.app/api/problem/${problemId}`);
+  const initialProblemData = response.data;
   console.log(initialProblemData);
+  
   return {
     props: {
       initialProblemData,
     },
+    revalidate: 10, // Revalidate the page every 10 seconds
   };
 }
