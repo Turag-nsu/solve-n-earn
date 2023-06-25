@@ -133,7 +133,7 @@ export default function ProblemPage({ initialProblemData }) {
   return (
     <ThemeProvider theme={theme}>
       <StyledContainer maxWidth="md">
-        {problemData ? (
+        {problemData && (
           <>
             <CardComponent
               probId={problemData.id}
@@ -178,39 +178,23 @@ export default function ProblemPage({ initialProblemData }) {
               </StyledButton>
             </form>
           </>
-        ) : (
-          <StyledTypography variant="h6" align="center">
-            Loading problem details...
-          </StyledTypography>
         )}
       </StyledContainer>
     </ThemeProvider>
   );
 }
 
-export async function getStaticPaths() {
-  // Fetch the list of problem IDs from the database
-  const problemIds = await fetch('https://solve-n-earn.vercel.app/api/problem/').then((res) => res.json());
-
-  // Generate the paths using the problem IDs
-  const paths = problemIds?.map((id) => ({ params: { problemId: id.toString() } }));
-
-  return {
-    paths,
-    fallback: true, // Show fallback UI while generating static pages
-  };
-}
-
-export async function getStaticProps({ params }) {
+export async function getServerSideProps({ params }) {
   const problemId = params.problemId;
 
   // Fetch initial data for the problem page from the database
-  const initialProblemData = await fetch(`https://solve-n-earn.vercel.app/api/problem/${problemId}`).then((res) => res.json());
+  const initialProblemData = await fetch(`https://solve-n-earn.vercel.app/api/problem/${problemId}`).then((res) =>
+    res.json()
+  );
   console.log(initialProblemData);
   return {
     props: {
       initialProblemData,
     },
-    revalidate: 10, // Revalidate the page every 10 second
   };
 }

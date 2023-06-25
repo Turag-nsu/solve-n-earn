@@ -62,7 +62,7 @@ function CardComponent(props) {
   const [isUpvoted, setIsUpvoted] = useState(false);
 
   const handleOnMarkAsSolved = async () => {
-    const currentUserId = await parseInt(session.token.sub);
+    const currentUserId = parseInt(session.token.sub);
     try {
       const response = await fetch(`/api/problem/${probId}?action=mark-as-solved`, {
         method: 'POST',
@@ -110,7 +110,7 @@ function CardComponent(props) {
       router.push('/login');
       return;
     }
-    const currentUserId = await parseInt(session.token.sub);
+    const currentUserId = parseInt(session.token.sub);
     try {
       const userResponse = await fetch(`/api/user/${currentUserId}`);
       const userData = await userResponse.json();
@@ -205,10 +205,10 @@ function CardComponent(props) {
   };
 
   const { pathname } = useRouter();
-  const isAllProblemPage = () => { return pathname === `/problem` };
+  const isAllProblemPage = () => pathname === '/problem';
 
   return (
-    problemStatus !== `solved` && (
+    problemStatus !== 'solved' && (
       <CenteredCardContainer>
         <StyledCard>
           <CardHeader
@@ -218,9 +218,10 @@ function CardComponent(props) {
           />
           <CardContent>
             <TypeTagWrapper>
-              {tags && tags.map((tag) => (
-                <Tag key={tag}>{tag}</Tag>
-              ))}
+              {tags &&
+                tags.map((tag) => (
+                  <Tag key={tag}>{tag}</Tag>
+                ))}
             </TypeTagWrapper>
 
             <Body>{body}</Body>
