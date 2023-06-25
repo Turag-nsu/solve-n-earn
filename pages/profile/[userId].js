@@ -23,13 +23,13 @@ const UserProfilePage = ({ initialData }) => {
   });
   const userProblems = problems && problems.filter((problem) => problem.userId == userId);
 
-  if (userError || problemsError) {
-    return <div>Error fetching user data</div>;
-  }
+  // if (userError || problemsError) {
+  //   return <div>Error fetching user data</div>;
+  // }
 
-  if (!user || !problems) {
-    return <Typography>Loading...</Typography>;
-  }
+  // if (!user || !problems) {
+  //   return <Typography>Loading...</Typography>;
+  // }
 
   const { name, email, respectPoints } = user.user;
 
