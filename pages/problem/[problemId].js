@@ -39,7 +39,7 @@ const StyledButton = styled(Button)(({ theme }) => ({
   marginBottom: theme.spacing(2),
 }));
 
-export default function ProblemPage({ initialProblemData }) {
+export default function ProblemPage({ initialProblemData, initialUserData }) {
   const router = useRouter();
   const { problemId } = router.query;
   const { data: session } = useSession();
@@ -51,7 +51,13 @@ export default function ProblemPage({ initialProblemData }) {
     fetcher,
     { initialData: initialProblemData } // Set initial data from props
   );
-
+  // console.log(initialProblemData)
+  const { data: userData, mutate: mutateUserData } = useSWR(
+    problemId ? `/api/user/${initialUserData.id}` : null,
+    fetcher,
+    { initialData: initialUserData } // Set initial data from props
+  );
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -70,6 +76,8 @@ export default function ProblemPage({ initialProblemData }) {
       if (response.ok) {
         console.log('Answer submitted successfully');
         mutateProblemData(); // Trigger revalidation of problem data
+        mutateUserData(); // Trigger revalidation of user data
+        
         setAnswer('');
       } else {
         console.error('Error submitting answer:', response.statusText);
@@ -95,6 +103,7 @@ export default function ProblemPage({ initialProblemData }) {
       if (response.ok) {
         console.log('Answer updated successfully');
         mutate(`/api/problem/${problemId}`);
+        mutate(`/api/user/${problemData.userId}`);
       } else {
         console.error('Error updating answer:', response.statusText);
       }
@@ -118,6 +127,7 @@ export default function ProblemPage({ initialProblemData }) {
       if (response.ok) {
         console.log('Answer deleted successfully');
         mutate(`/api/problem/${problemId}`);
+        mutate(`/api/user/${problemData.userId}`);
       } else {
         console.error('Error deleting answer:', response.statusText);
       }
@@ -133,7 +143,7 @@ export default function ProblemPage({ initialProblemData }) {
   return (
     <ThemeProvider theme={theme}>
       <StyledContainer maxWidth="md">
-        {problemData ? (
+        {(problemData && userData) ? (
           <>
             <CardComponent
               probId={problemData.id}
@@ -142,7 +152,8 @@ export default function ProblemPage({ initialProblemData }) {
               body={problemData.body}
               totalUpvotes={problemData.totalUpvotes}
               problemStatus={problemData.status}
-              userName={problemData.userName}
+              // userName={problemData.userName}
+              userName={userData.user.name}
               createdAt={formattedCreatedAt}
               userId={problemData.userId}
             />
@@ -194,7 +205,7 @@ export async function getStaticPaths() {
 
   // Generate the paths using the problem IDs
   const paths = problems?.map((problem) => ({ params: { problemId: problem.id.toString() } }));
-  console.log(paths);
+  // console.log(paths);
   return {
     paths,
     fallback: true, // Show fallback UI while generating static pages
@@ -206,10 +217,13 @@ export async function getStaticProps({ params }) {
 
   // Fetch initial data for the problem page from the database
   const initialProblemData = await fetch(`https://solve-n-earn.vercel.app/api/problem/${problemId}`).then((res) => res.json());
+  const fetchedUserData = await fetch(`https://solve-n-earn.vercel.app/api/user/${initialProblemData.userId}`).then((res) => res.json());
   // console.log(initialProblemData);
+  const initialUserData = fetchedUserData.user;
   return {
     props: {
       initialProblemData,
+      initialUserData,
     },
     revalidate: 10, // Revalidate the page every 10 second
   };
