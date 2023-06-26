@@ -50,7 +50,7 @@ export async function getStaticPaths() {
   const paths = usersData?.map((user) => ({
     params: { userId: user.id.toString() },
   }));
-
+  // console.log(paths);
   return {
     paths,
     fallback: true,
@@ -70,12 +70,12 @@ export async function getStaticProps(context) {
 
   const userData = await userResponse.json();
   const problemsData = await problemsResponse.json();
-
+  // console.log(problemsData, userData);
   return {
     props: {
       initialData: {
-        user: userData,
-        problems: problemsData,
+        userData,      // Update property name to 'userData'
+        problemsData,  // Update property name to 'problemsData'
       },
     },
   };
