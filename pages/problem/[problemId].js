@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import { Container, Typography, TextField, Button, useMediaQuery } from '@mui/material';
 import { formatDistanceToNow } from 'date-fns';
+import useSWR, { mutate } from 'swr';
 
 import CardComponent from '../../components/CardComponent';
 import AnswerCard from '../../components/AnswerCard';
@@ -44,27 +45,18 @@ export default function ProblemPage({ initialProblemData }) {
   const { data: session } = useSession();
   const [answer, setAnswer] = useState('');
 
-  const [problemData, setProblemData] = useState(initialProblemData);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const response = await fetch(`https://solve-n-earn.vercel.app/api/problem/${problemId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setProblemData(data);
-      } else {
-        console.error('Error fetching problem data:', response.statusText);
-      }
-    };
-
-    fetchData();
-  }, [problemId]);
+  const fetcher = (url) => fetch(url).then((res) => res.json());
+  const { data: problemData, mutate: mutateProblemData } = useSWR(
+    problemId ? `/api/problem/${problemId}` : null,
+    fetcher,
+    { initialData: initialProblemData } // Set initial data from props
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await fetch(`https://solve-n-earn.vercel.app/api/problem/${problemId}/answer`, {
+      const response = await fetch(`/api/problem/${problemId}/answer`, {
         method: 'POST',
         body: JSON.stringify({
           answeringUserId: session?.token?.sub,
@@ -89,7 +81,7 @@ export default function ProblemPage({ initialProblemData }) {
 
   const handleAnswerUpdate = async (answerId, newAnswerBody) => {
     try {
-      const response = await fetch(`https://solve-n-earn.vercel.app/api/problem/${problemId}/answer`, {
+      const response = await fetch(`/api/problem/${problemId}/answer`, {
         method: 'PUT',
         body: JSON.stringify({
           answerId,
@@ -113,7 +105,7 @@ export default function ProblemPage({ initialProblemData }) {
 
   const handleAnswerDelete = async (answerId) => {
     try {
-      const response = await fetch(`https://solve-n-earn.vercel.app/api/problem/${problemId}/answer`, {
+      const response = await fetch(`/api/problem/${problemId}/answer`, {
         method: 'DELETE',
         body: JSON.stringify({
           answerId,
@@ -141,7 +133,7 @@ export default function ProblemPage({ initialProblemData }) {
   return (
     <ThemeProvider theme={theme}>
       <StyledContainer maxWidth="md">
-        {problemData && (
+        {problemData ? (
           <>
             <CardComponent
               probId={problemData.id}
@@ -186,36 +178,39 @@ export default function ProblemPage({ initialProblemData }) {
               </StyledButton>
             </form>
           </>
+        ) : (
+          <StyledTypography variant="h6" align="center">
+            Loading problem details...
+          </StyledTypography>
         )}
       </StyledContainer>
     </ThemeProvider>
   );
 }
 
+export async function getStaticPaths() {
+  // Fetch the list of problem IDs from the database
+  const problemIds = await fetch('https://solve-n-earn.vercel.app/api/problem/').then((res) => res.json());
+
+  // Generate the paths using the problem IDs
+  const paths = problemIds?.map((id) => ({ params: { problemId: id.toString() } }));
+
+  return {
+    paths,
+    fallback: true, // Show fallback UI while generating static pages
+  };
+}
+
 export async function getStaticProps({ params }) {
   const problemId = params.problemId;
 
   // Fetch initial data for the problem page from the database
-  const initialProblemData = await fetch(`https://solve-n-earn.vercel.app/api/problem/${problemId}`).then((res) =>
-    res.json()
-  );
+  const initialProblemData = await fetch(`https://solve-n-earn.vercel.app/api/problem/${problemId}`).then((res) => res.json());
   console.log(initialProblemData);
   return {
     props: {
       initialProblemData,
     },
-  };
-}
-
-export async function getStaticPaths() {
-  // Fetch problem IDs from the database
-  const problemIds = await fetch('https://solve-n-earn.vercel.app/api/problems').then((res) => res.json());
-
-  // Generate paths based on problem IDs
-  const paths = problemIds.map((id) => ({ params: { problemId: id.toString() } }));
-
-  return {
-    paths,
-    fallback: false,
+    revalidate: 10, // Revalidate the page every 10 second
   };
 }
