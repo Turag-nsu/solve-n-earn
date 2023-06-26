@@ -9,7 +9,7 @@ const fetcher = (url) => fetch(url).then((res) => res.json());
 const UserProfilePage = ({ initialData }) => {
   const router = useRouter();
   const { userId } = router.query;
-
+  // const { userData, problemsData } = initialData;
   // const { data: session } = useSession();
   const { data: userData, error: userError } = useSWR(`/api/user/${userId}`, fetcher, {
     initialData: initialData.user,
@@ -78,8 +78,8 @@ const UserProfilePage = ({ initialData }) => {
     return {
       props: {
         initialData: {
-          user: userData,
-          problems: problemsData,
+          userData,
+          problemsData,
         },
       },
     };
