@@ -75,7 +75,7 @@ const ResponsiveAppBar = () => {
 
   const handleMenuClick = (path) => {
     if (path === '/Profile') {
-      router.push(`/Profile/${session.token.sub}`);
+      router.push(`/profile/${session.token.sub}`);
     } else {
       router.push(path);
     }
