@@ -9,12 +9,12 @@ const UserProfilePage = ({ initialData }) => {
   const router = useRouter();
   const { userId } = router.query;
   const { data: userData, error: userError } = useSWR(`/api/user/${userId}`, fetcher, {
-    initialData: initialData?.userData, // Check if initialData is available
+    initialData: initialData?.userData,
   });
   const user = userData?.user;
 
   const { data: problems, error: problemsError } = useSWR(`/api/problem`, fetcher, {
-    initialData: initialData?.problemsData, // Check if initialData is available
+    initialData: initialData?.problemsData,
   });
   const userProblems = problems && problems.filter((problem) => problem.userId == userId);
 
