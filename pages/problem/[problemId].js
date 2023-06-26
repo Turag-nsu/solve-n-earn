@@ -1,11 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import { Container, Typography, TextField, Button, useMediaQuery } from '@mui/material';
 import { formatDistanceToNow } from 'date-fns';
-import axios from 'axios';
-import useSWR, { mutate } from 'swr';
 
 import CardComponent from '../../components/CardComponent';
 import AnswerCard from '../../components/AnswerCard';
@@ -46,27 +44,38 @@ export default function ProblemPage({ initialProblemData }) {
   const { data: session } = useSession();
   const [answer, setAnswer] = useState('');
 
-  const fetcher = async (url) => {
-    const response = await axios.get(url);
-    return response.data;
-  };
+  const [problemData, setProblemData] = useState(initialProblemData);
 
-  const { data: problemData, mutate: mutateProblemData } = useSWR(
-    problemId ? `/api/problem/${problemId}` : null,
-    fetcher,
-    { initialData: initialProblemData } // Set initial data from props
-  );
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch(`https://solve-n-earn.vercel.app/api/problem/${problemId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setProblemData(data);
+      } else {
+        console.error('Error fetching problem data:', response.statusText);
+      }
+    };
+
+    fetchData();
+  }, [problemId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await axios.post(`/api/problem/${problemId}/answer`, {
-        answeringUserId: session?.token?.sub,
-        answerBody: answer,
+      const response = await fetch(`https://solve-n-earn.vercel.app/api/problem/${problemId}/answer`, {
+        method: 'POST',
+        body: JSON.stringify({
+          answeringUserId: session?.token?.sub,
+          answerBody: answer,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
-      if (response.status === 200) {
+      if (response.ok) {
         console.log('Answer submitted successfully');
         mutateProblemData(); // Trigger revalidation of problem data
         setAnswer('');
@@ -80,12 +89,18 @@ export default function ProblemPage({ initialProblemData }) {
 
   const handleAnswerUpdate = async (answerId, newAnswerBody) => {
     try {
-      const response = await axios.put(`/api/problem/${problemId}/answer`, {
-        answerId,
-        answerBody: newAnswerBody,
+      const response = await fetch(`https://solve-n-earn.vercel.app/api/problem/${problemId}/answer`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          answerId,
+          answerBody: newAnswerBody,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
-      if (response.status === 200) {
+      if (response.ok) {
         console.log('Answer updated successfully');
         mutate(`/api/problem/${problemId}`);
       } else {
@@ -98,13 +113,17 @@ export default function ProblemPage({ initialProblemData }) {
 
   const handleAnswerDelete = async (answerId) => {
     try {
-      const response = await axios.delete(`/api/problem/${problemId}/answer`, {
-        data: {
+      const response = await fetch(`https://solve-n-earn.vercel.app/api/problem/${problemId}/answer`, {
+        method: 'DELETE',
+        body: JSON.stringify({
           answerId,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
         },
       });
 
-      if (response.status === 200) {
+      if (response.ok) {
         console.log('Answer deleted successfully');
         mutate(`/api/problem/${problemId}`);
       } else {
@@ -173,34 +192,30 @@ export default function ProblemPage({ initialProblemData }) {
   );
 }
 
-
-export async function getStaticPaths() {
-  // Fetch the list of problem IDs from the database
-  const response = await axios.get('https://solve-n-earn.vercel.app/api/problem/');
-  const problemIds = response.data;
-
-  // Generate the paths using the problem IDs
-  const paths = problemIds?.map((problemId) => ({ params: { id: problemId } })); // Modify this line
-
-  return {
-    paths,
-    fallback: true, // Show fallback UI while generating static pages
-  };
-}
-
-
 export async function getStaticProps({ params }) {
   const problemId = params.problemId;
 
   // Fetch initial data for the problem page from the database
-  const response = await axios.get(`https://solve-n-earn.vercel.app/api/problem/${problemId}`);
-  const initialProblemData = response.data;
+  const initialProblemData = await fetch(`https://solve-n-earn.vercel.app/api/problem/${problemId}`).then((res) =>
+    res.json()
+  );
   console.log(initialProblemData);
-  
   return {
     props: {
       initialProblemData,
     },
-    revalidate: 10, // Revalidate the page every 10 seconds
+  };
+}
+
+export async function getStaticPaths() {
+  // Fetch problem IDs from the database
+  const problemIds = await fetch('https://solve-n-earn.vercel.app/api/problems').then((res) => res.json());
+
+  // Generate paths based on problem IDs
+  const paths = problemIds.map((id) => ({ params: { problemId: id.toString() } }));
+
+  return {
+    paths,
+    fallback: false,
   };
 }
