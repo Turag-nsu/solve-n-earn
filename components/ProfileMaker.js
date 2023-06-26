@@ -1,9 +1,20 @@
 import React from 'react';
-import { Box, Typography, useTheme } from '@mui/material';
+import { Box, Typography, createTheme, ThemeProvider } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import CardComponent from './CardComponent';
 import { useSession } from 'next-auth/react';
 import { formatDistanceToNow } from 'date-fns';
+// import {  } from 'styled-components';
+
+
+const theme = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: {
+      main: '#ff5722',
+    },
+  },
+});
 
 const StyledAvatar = styled('div')(({ theme }) => ({
   width: '80px',
@@ -17,12 +28,15 @@ const StyledAvatar = styled('div')(({ theme }) => ({
 }));
 
 const Avatar = () => {
+  
   return (
+    <ThemeProvider theme={theme}>
     <StyledAvatar>
       <Typography variant="h3" color="textPrimary">
         A
       </Typography>
     </StyledAvatar>
+    </ThemeProvider>
   );
 };
 
@@ -50,14 +64,16 @@ const Email = styled(Typography)(({ theme }) => ({
 }));
 
 const UserInfo = ({ name, email, respectPoints }) => {
-  const theme = useTheme();
+  
 
   return (
+    <ThemeProvider theme={theme}>
     <UserInfoWrapper>
       <Name>{name}</Name>
       <Name>{`Respectpoints: ${respectPoints.toFixed(2)}`}</Name>
       <Email>{email}</Email>
     </UserInfoWrapper>
+    </ThemeProvider>
   );
 };
 
@@ -85,7 +101,7 @@ const StatIcon = styled(Box)(({ theme }) => ({
 }));
 
 const UserStats = ({ problems }) => {
-  const theme = useTheme();
+  // const theme = useTheme();
   const { data: session } = useSession();
 
   if (!Array.isArray(problems)) {
@@ -93,6 +109,7 @@ const UserStats = ({ problems }) => {
   }
 
   return (
+    <ThemeProvider theme={theme}>
     <UserStatsWrapper>
       <StatWrapper>
         {/* <StatIcon>
@@ -128,6 +145,7 @@ const UserStats = ({ problems }) => {
         })}
       </Box>
     </UserStatsWrapper>
+    </ThemeProvider>
   );
 };
 
