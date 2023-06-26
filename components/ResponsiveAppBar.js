@@ -168,7 +168,7 @@ const ResponsiveAppBar = () => {
                 sx={{ p: 0 }}
                 className="avatar-button"
               >
-                <Avatar alt="Remy Sharp" src="" />
+                <Avatar alt={session?.session?.user?.name} src={session?.session?.user?.image} />
               </IconButton>
             </Tooltip>
             <Menu

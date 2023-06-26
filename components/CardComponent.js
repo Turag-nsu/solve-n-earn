@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, Typography, Button, Box, Avatar } from '
 import { styled } from '@mui/material/styles';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
-import { PausePresentationTwoTone } from '@mui/icons-material';
+// import canUpvoteChecker from '@/pages/api/canUpvoteChecker';
 
 const StyledCard = styled(Card)(({ theme }) => ({
   margin: theme.spacing(2),
@@ -39,10 +39,17 @@ const UpvoteCount = styled(Typography)(({ theme }) => ({
 }));
 
 const UpvoteLogo = styled(Box)(({ theme }) => ({
-  borderRadius: theme.shape.borderRadius,
+  display: 'flex',
+  alignItems: 'center',
   padding: theme.spacing(0.5),
   height: theme.spacing(3),
-  backgroundColor: theme.palette.primary.main,
+  backgroundColor: 'rgba(27, 255, 30, 0.41)',
+  border: `1px solid ${theme.palette.primary.main}`,
+  color: theme.palette.text.secondary,
+  fontWeight: 600,
+  marginLeft: theme.spacing(1),
+  // background: `radial-gradient(circle at center, #ff5722, #32cd32)`,
+  boxShadow: '0px 0px 8px #32cd32',
 }));
 
 const CenteredCardContainer = styled(Box)({
@@ -55,14 +62,15 @@ const ActionButton = styled(Button)(({ theme }) => ({
 }));
 
 function CardComponent(props) {
+  
   const { probId, title, tags, body, totalUpvotes, problemStatus, userName, createdAt, userId } = props;
   const router = useRouter();
   const { data: session } = useSession();
-
+  const currentUserId = parseInt(session.token.sub)
   const [isUpvoted, setIsUpvoted] = useState(false);
 
   const handleOnMarkAsSolved = async () => {
-    const currentUserId = parseInt(session.token.sub);
+    
     try {
       const response = await fetch(`/api/problem/${probId}?action=mark-as-solved`, {
         method: 'POST',
@@ -110,7 +118,7 @@ function CardComponent(props) {
       router.push('/login');
       return;
     }
-    const currentUserId = parseInt(session.token.sub);
+    
     try {
       const userResponse = await fetch(`/api/user/${currentUserId}`);
       const userData = await userResponse.json();
@@ -185,7 +193,7 @@ function CardComponent(props) {
       return;
     }
 
-    const currentUserId = parseInt(session.token.sub);
+    // ;
 
     try {
       const response = await fetch(`/api/problem/${probId}`, {
@@ -226,11 +234,11 @@ function CardComponent(props) {
 
             <Body>{body}</Body>
             <TotalUpvotesWrapper>
-              <UpvoteCount>{totalUpvotes}</UpvoteCount>
-              <UpvoteLogo>Upvote</UpvoteLogo>
+              {/* <UpvoteCount>{totalUpvotes}</UpvoteCount> */}
+              {(totalUpvotes>0 &&<UpvoteLogo>{totalUpvotes} Upvotes</UpvoteLogo>)}
             </TotalUpvotesWrapper>
             <Box>
-              {session && parseInt(session.token.sub) !== userId && (
+              {session && currentUserId !== userId && (
                 <>
                   {!isUpvoted && (
                     <ActionButton variant="contained" color="primary" onClick={handleUpvote}>
@@ -245,7 +253,7 @@ function CardComponent(props) {
                 </>
               )}
 
-              {session && parseInt(session.token.sub) === userId && (
+              {session && currentUserId === userId && (
                 <>
                   <ActionButton variant="contained" color="primary" onClick={handleOnEdit}>
                     Edit

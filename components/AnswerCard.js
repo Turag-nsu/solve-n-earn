@@ -15,7 +15,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import useSWR from 'swr';
-
+// import canUpvoteChecker from '@/pages/api/canUpvoteChecker';
 const StyledCard = styled(Card)(({ theme }) => ({
     marginBottom: theme.spacing(2),
     width: '80%',
@@ -56,6 +56,38 @@ export default function AnswerCard({
             refreshInterval: 120000,
         }
     );
+    const { data: notifications, error: notificationsError } = useSWR(
+        `/api/notification?userId=${currentUserId}`,
+        fetcher,
+        {
+            refreshInterval: 120000,
+        }
+    );
+    const canupvote = (userId, answerId) => {
+        if (Array.isArray(notifications)) {
+          const filteredNotifications = notifications.filter(
+            (notification) =>
+              notification.logType === 'notification' &&
+              notification.logAction === 'upvote' &&
+              notification.logAnswerId === answerId &&
+              notification.fromUserId === userId
+          );
+          if (filteredNotifications.length > 0) {
+            return false;
+          } else {
+            return true;
+          }
+        }
+        return true; // Return a default value when notifications is not an array
+      };
+      
+    const canUpvoteChecker = () => {
+        if (canupvote(currentUserId, answer.id)) {
+            setHasUpvoted(true);
+        } else {
+            return false;
+        }
+    };
 
     const handleEdit = () => {
         setIsEditing(true);
@@ -78,10 +110,13 @@ export default function AnswerCard({
     };
 
     const handleUpvote = () => {
-        if (!hasUpvoted) {
-            setUpvotes((prevUpvotes) => prevUpvotes + 1);
-            setHasUpvoted(true);
-        }
+        // if (canUpvoteChecker()) {
+            canUpvoteChecker();
+            if (!hasUpvoted) {
+                setUpvotes((prevUpvotes) => prevUpvotes + 1);
+                setHasUpvoted(true);
+            }
+        // }
     };
 
     const handleDownvote = () => {
@@ -98,7 +133,7 @@ export default function AnswerCard({
     const getAnswerActions = () => {
         if (currentUserId === answer.userId) {
             return (
-                <div style = {{margin: `2rem 0 0.5rem`}}>
+                <div style={{ margin: `2rem 0 0.5rem` }}>
                     {isEditing ? (
                         <>
                             <TextField
@@ -155,23 +190,23 @@ export default function AnswerCard({
         const timestamp = parseInt(id.substring(0, 8), 16) * 1000;
         return new Date(timestamp);
     };
-    
+
     return (
         <ThemeProvider theme={theme}>
-          <StyledCard>
-            <StyledCardContent>
-              {user && (
-                <Typography variant="h6" color="secondary">
-                  Posted by: {user.user.name}
-                </Typography>
-              )}
-              <Typography variant="body2" color="secondary">
-                {formatDistanceToNow(extractCreatedAt(answer._id), { addSuffix: true })}
-              </Typography>
+            <StyledCard>
+                <StyledCardContent>
+                    {user && (
+                        <Typography variant="h6" color="secondary">
+                            Posted by: {user.user.name}
+                        </Typography>
+                    )}
+                    <Typography variant="body2" color="secondary">
+                        {formatDistanceToNow(extractCreatedAt(answer._id), { addSuffix: true })}
+                    </Typography>
 
-              {getAnswerActions()}
-            </StyledCardContent>
-          </StyledCard>
+                    {getAnswerActions()}
+                </StyledCardContent>
+            </StyledCard>
         </ThemeProvider>
-      );
-    }
+    );
+}
