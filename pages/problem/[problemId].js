@@ -190,11 +190,11 @@ export default function ProblemPage({ initialProblemData }) {
 
 export async function getStaticPaths() {
   // Fetch the list of problem IDs from the database
-  const problemIds = await fetch('https://solve-n-earn.vercel.app/api/problem/').then((res) => res.json());
+  const problems = await fetch('https://solve-n-earn.vercel.app/api/problem/').then((res) => res.json());
 
   // Generate the paths using the problem IDs
-  const paths = problemIds?.map((id) => ({ params: { problemId: id.toString() } }));
-
+  const paths = problems?.map((problem) => ({ params: { problemId: problem.id.toString() } }));
+  console.log(paths);
   return {
     paths,
     fallback: true, // Show fallback UI while generating static pages
@@ -206,7 +206,7 @@ export async function getStaticProps({ params }) {
 
   // Fetch initial data for the problem page from the database
   const initialProblemData = await fetch(`https://solve-n-earn.vercel.app/api/problem/${problemId}`).then((res) => res.json());
-  console.log(initialProblemData);
+  // console.log(initialProblemData);
   return {
     props: {
       initialProblemData,
