@@ -70,7 +70,7 @@ const UserInfo = ({ name, email, respectPoints }) => {
     <ThemeProvider theme={theme}>
     <UserInfoWrapper>
       <Name>{name}</Name>
-      <Name>{`Respectpoints: ${respectPoints.toFixed(2)}`}</Name>
+      <Name>{`Respectpoints: ${respectPoints?.toFixed(2)}`}</Name>
       <Email>{email}</Email>
     </UserInfoWrapper>
     </ThemeProvider>
