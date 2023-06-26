@@ -53,7 +53,7 @@ export async function getStaticPaths() {
   const usersData = await usersResponse.json();
 
   const paths = usersData?.map((user) => ({
-    params: { userId: user.id },
+    params: { userId: user.id.toString() },
   }));
 
   return {
