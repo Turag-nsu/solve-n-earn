@@ -9,12 +9,12 @@ const UserProfilePage = ({ initialData }) => {
   const router = useRouter();
   const { userId } = router.query;
   const { data: userData, error: userError } = useSWR(`/api/user/${userId}`, fetcher, {
-    initialData: initialData.user,
+    initialData: initialData?.userData, // Check if initialData is available
   });
   const user = userData?.user;
 
   const { data: problems, error: problemsError } = useSWR(`/api/problem`, fetcher, {
-    initialData: initialData.problems,
+    initialData: initialData?.problemsData, // Check if initialData is available
   });
   const userProblems = problems && problems.filter((problem) => problem.userId == userId);
 
@@ -28,6 +28,11 @@ const UserProfilePage = ({ initialData }) => {
     }
   };
   
+  if (!initialData) {
+    // Handle the case when initialData is not available during the build
+    return <Typography>Loading...</Typography>;
+  }
+
   if (userError || problemsError) {
     return <Typography>Error fetching user data. Please try again later or contact our developer team.</Typography>;
   }
@@ -50,7 +55,7 @@ export async function getStaticPaths() {
   const paths = usersData?.map((user) => ({
     params: { userId: user.id.toString() },
   }));
-  // console.log(paths);
+
   return {
     paths,
     fallback: true,
@@ -70,12 +75,12 @@ export async function getStaticProps(context) {
 
   const userData = await userResponse.json();
   const problemsData = await problemsResponse.json();
-  // console.log(problemsData, userData);
+
   return {
     props: {
       initialData: {
-        userData,      // Update property name to 'userData'
-        problemsData,  // Update property name to 'problemsData'
+        userData,
+        problemsData,
       },
     },
   };
