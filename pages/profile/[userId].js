@@ -14,7 +14,7 @@ const UserProfilePage = ({ initialData }) => {
   const { data: userData, error: userError } = useSWR(`/api/user/${userId}`, fetcher, {
     initialData: initialData.user,
   });
-  const user = userData?.user;
+  const xuser = userData?.user;
   // console.log(user)
   const { data: problems, error: problemsError } = useSWR(`/api/problem`, fetcher, {
     initialData: initialData.problems,
@@ -38,9 +38,9 @@ const UserProfilePage = ({ initialData }) => {
 
     return (
       <Profile
-        name={user?.name}
-        email={user?.email}
-        respectPoints={user?.respectPoints}
+        name={xuser?.name}
+        email={xuser?.email}
+        respectPoints={xuser?.respectPoints}
         problems={userProblems}
         onDeleteProblem={handleProblemDelete}
       />
@@ -78,11 +78,11 @@ const UserProfilePage = ({ initialData }) => {
     return {
       props: {
         initialData: {
-          userData,
-          problemsData,
+          user: userData,      // Update property name to 'user'
+          problems: problemsData,
         },
       },
-    };
+    };    
   }
 
   export default UserProfilePage;
