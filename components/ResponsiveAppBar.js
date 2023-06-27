@@ -17,7 +17,7 @@ import { Menu as MenuIcon, Add as AddIcon } from '@mui/icons-material';
 import Container from '@mui/material/Container';
 import { signOut, useSession } from 'next-auth/react';
 
-const pages = ['Notification', 'Support', 'Blog'];
+const pages = ['Notification', 'Support', 'Site-Map'];
 const settings = ['Profile', 'Account', 'Dashboard'];
 
 const StyledTypography = styled(Typography)(({ theme }) => ({

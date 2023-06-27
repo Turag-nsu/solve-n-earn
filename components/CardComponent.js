@@ -4,6 +4,7 @@ import { styled } from '@mui/material/styles';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import useSWR from 'swr';
+import Link from 'next/link';
 // import canUpvoteChecker from '@/pages/api/canUpvoteChecker';
 
 const StyledCard = styled(Card)(({ theme }) => ({
@@ -250,7 +251,18 @@ function CardComponent(props) {
         <StyledCard>
           <CardHeader
             title={title}
-            subheader={`Posted by ${userName} • ${createdAt}`}
+            // subheader={`Posted by ${userName} • ${createdAt}`}
+            
+            subheader={
+              <>
+                Posted by{' '}
+                <Link href={`/profile/${userId}`}>
+                  <Typography color="info.main">{userName}</Typography>
+                </Link>{' '}
+                • {createdAt}
+              </>
+            }
+            
             style={{ paddingBottom: 0 }}
           />
           <CardContent>
