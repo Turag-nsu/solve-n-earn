@@ -17,7 +17,7 @@ const options = {
       const dbuser = process.env.DB_USERNAME;
       const dbpass = process.env.DB_PASSWORD;
       connectToDatabase(dbuser, dbpass);
-      const { email, name } = profile;
+      const { email, name, image } = profile;
 
       if (account.provider === 'google') {
         if (email.endsWith('@gmail.com')) {
@@ -28,6 +28,7 @@ const options = {
               id: Math.floor(Math.random() * 10000),
               name,
               email,
+              image,
               authProvider: 'google',
             });
 

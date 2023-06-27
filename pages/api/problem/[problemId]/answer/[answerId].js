@@ -1,14 +1,49 @@
 import Question from '@/utility/database/models/questionSchema';
+import User from '@/utility/database/models/userSchema';
 import connectToDatabase from '@/utility/database/databaseConnection';
 
 export default async function handler(req, res) {
+  const dbuser = process.env.DB_USERNAME;
+  const dbpass = process.env.DB_PASSWORD;
+  await connectToDatabase(dbuser, dbpass);
   const { problemId } = req.query;
+  if (req.method === 'POST' && req.query.action === 'upvote') {
+    try {
+      const { respectPointsToAdd, userId, upvoteGettingAnsId } = req.body;
+      const problem = await Question.findOne({ id: problemId });
+
+      if (problem) {
+        const answer = problem.answers.find((ans) => ans.id === upvoteGettingAnsId);
+
+        if (answer) {
+          answer.upvotes += 1;
+          await problem.save();
+
+          const user = await User.findOne({ id: userId });
+          if (user) {
+            user.respectPoints += respectPointsToAdd;
+            await user.save();
+          }
+
+          res.status(200).json({ message: 'Upvote successful' });
+        } else {
+          res.status(404).json({ error: 'Answer not found' });
+        }
+      } else {
+        res.status(404).json({ error: 'Problem not found' });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  } else {
+    res.status(405).json({ error: 'Method not allowed' });
+  }
+
 
   if (req.method === 'GET') {
     try {
-      const dbuser = process.env.DB_USERNAME;
-      const dbpass = process.env.DB_PASSWORD;
-      await connectToDatabase(dbuser, dbpass);
+     
 
       const problem = await Question.findOne({ id: problemId });
 
@@ -21,11 +56,9 @@ export default async function handler(req, res) {
       console.error(error);
       res.status(500).json({ error: 'Internal server error' });
     }
-  } else if (req.method === 'POST') {
+  } else if (req.method === 'POST' && req.query.action != 'upvote') {
     try {
-      const dbuser = process.env.DB_USERNAME;
-      const dbpass = process.env.DB_PASSWORD;
-      await connectToDatabase(dbuser, dbpass);
+      
 
       const { answeringUserId, answerBody } = req.body;
 

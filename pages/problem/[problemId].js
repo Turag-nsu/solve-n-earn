@@ -59,8 +59,9 @@ export default function ProblemPage({ initialProblemData, initialUserData }) {
   );
   
   const handleSubmit = async (e) => {
+    console.log('Submitting answer...');
     e.preventDefault();
-
+    if (answer.length <10 ) return;
     try {
       const response = await fetch(`/api/problem/${problemId}/answer`, {
         method: 'POST',
@@ -88,6 +89,7 @@ export default function ProblemPage({ initialProblemData, initialUserData }) {
   };
 
   const handleAnswerUpdate = async (answerId, newAnswerBody) => {
+    
     try {
       const response = await fetch(`/api/problem/${problemId}/answer`, {
         method: 'PUT',

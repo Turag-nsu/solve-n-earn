@@ -66,7 +66,7 @@ function CardComponent(props) {
   const { probId, title, tags, body, totalUpvotes, problemStatus, userName, createdAt, userId } = props;
   const router = useRouter();
   const { data: session } = useSession();
-  const currentUserId = parseInt(session.token.sub)
+  const currentUserId = parseInt(session?.token?.sub)
   const [isUpvoted, setIsUpvoted] = useState(false);
 
   const handleOnMarkAsSolved = async () => {

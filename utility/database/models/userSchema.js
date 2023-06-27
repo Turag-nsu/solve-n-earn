@@ -6,6 +6,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true },
   active: { type: String, default: 'active' },
   respectPoints: { type: Number, default: 1 },
+  image: { type: String },
   authProvider: { type: String, required: true },
 });
 

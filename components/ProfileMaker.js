@@ -41,10 +41,11 @@ const AvatarImage = styled('img')({
 const Avatar = () => {
   const { data: session } = useSession();
   const path = session?.session?.user?.image;
+  // console.log(path);
   return (
     <ThemeProvider theme={theme}>
       <StyledAvatar>
-        <AvatarImage src={path} alt="user profile picture" />
+        {<AvatarImage src={path} alt="user profile picture" />||<AvatarImage src="https://i.imgur.com/6VBx3io.png" alt="user profile picture" />}
       </StyledAvatar>
     </ThemeProvider>
   );
