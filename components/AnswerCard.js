@@ -105,14 +105,14 @@ export default function AnswerCard({
             }
         }
     };
-    const canUpvoteChecker = () => {
-         console.log(canupvote(currentUserId, answer.id));
-        if (canupvote(currentUserId, answer.id)) {
-            setHasUpvoted(false);
-        } else {
-            setHasUpvoted(true);
-        }
-    };
+    // const canUpvoteChecker = () => {
+    //      console.log(canupvote(currentUserId, answer.id));
+    //     if (canupvote(currentUserId, answer.id)) {
+    //         setHasUpvoted(false);
+    //     } else {
+    //         setHasUpvoted(true);
+    //     }
+    // };
 
     const handleEdit = () => {
         setIsEditing(true);

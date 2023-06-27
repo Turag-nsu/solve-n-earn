@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, Typography, Button, Box, Avatar } from '
 import { styled } from '@mui/material/styles';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
+import useSWR from 'swr';
 // import canUpvoteChecker from '@/pages/api/canUpvoteChecker';
 
 const StyledCard = styled(Card)(({ theme }) => ({
@@ -62,15 +63,15 @@ const ActionButton = styled(Button)(({ theme }) => ({
 }));
 
 function CardComponent(props) {
-  
+
   const { probId, title, tags, body, totalUpvotes, problemStatus, userName, createdAt, userId } = props;
   const router = useRouter();
   const { data: session } = useSession();
   const currentUserId = parseInt(session?.token?.sub)
   const [isUpvoted, setIsUpvoted] = useState(false);
-
+  const fetcher = (url) => fetch(url).then((res) => res.json());
   const handleOnMarkAsSolved = async () => {
-    
+
     try {
       const response = await fetch(`/api/problem/${probId}?action=mark-as-solved`, {
         method: 'POST',
@@ -103,7 +104,7 @@ function CardComponent(props) {
           const errorData = await notifyLog.json();
           console.error('Error creating notification:', errorData.error);
         }
-        
+
         console.log(`Problem marked as solved: ${probId}`);
       } else {
         console.error(`Error marking problem as solved: ${response.status}`);
@@ -112,21 +113,49 @@ function CardComponent(props) {
       console.error('Error marking problem as solved:', error);
     }
   };
-
+  const { data: notificationsResponse, error: notificationsError } = useSWR(
+    `/api/notification?userId=${currentUserId}&action=check`,
+    fetcher,
+    {
+      refreshInterval: 120000,
+    }
+  );
+  const notifications = notificationsResponse?.notifications;
+  // console.log(notifications);
+  const canupvote = (userId, probId) => {
+    if (notifications) {
+      const filteredNotifications = notifications?.filter(
+        (notification) =>
+          notification.logProblemId === probId &&
+          notification.logAction === 'upvote' &&
+          // notification.logAnswerId === answerId &&
+          notification.fromUserId === userId
+      );
+      // console.log(filteredNotifications);
+      if (filteredNotifications.length > 0) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+  };
   const handleUpvote = async () => {
     if (!session) {
       router.push('/login');
       return;
     }
-    
+    if(!canupvote(currentUserId, probId)) {
+      alert('You have already upvoted this problem');
+      return;
+    }
     try {
       const userResponse = await fetch(`/api/user/${currentUserId}`);
       const userData = await userResponse.json();
-  
+
       const respectPointsToAdd = userData.user.respectPoints * 0.1;
-  
+
       setIsUpvoted(true);
-  
+
       const upvoteResponse = await fetch(`/api/problem/${probId}?action=upvote`, {
         method: 'POST',
         body: JSON.stringify({ respectPointsToAdd, userId }),
@@ -134,7 +163,7 @@ function CardComponent(props) {
           'Content-Type': 'application/json',
         },
       });
-  
+
       if (upvoteResponse.ok) {
         const notifyLog = await fetch('/api/notification', {
           method: 'POST',
@@ -161,7 +190,7 @@ function CardComponent(props) {
       console.error('Error upvoting:', error);
     }
   };
-  
+
 
   const onOpenProblem = () => {
     router.push(`/problem/${probId}`);
@@ -235,13 +264,18 @@ function CardComponent(props) {
             <Body>{body}</Body>
             <TotalUpvotesWrapper>
               {/* <UpvoteCount>{totalUpvotes}</UpvoteCount> */}
-              {(totalUpvotes>0 &&<UpvoteLogo>{totalUpvotes} Upvotes</UpvoteLogo>)}
+              {(totalUpvotes > 0 && <UpvoteLogo>{totalUpvotes} Upvotes</UpvoteLogo>)}
             </TotalUpvotesWrapper>
             <Box>
               {session && currentUserId !== userId && (
                 <>
-                  {!isUpvoted && (
+                  {!isUpvoted && canupvote(currentUserId, probId) && (
                     <ActionButton variant="contained" color="primary" onClick={handleUpvote}>
+                      Upvote
+                    </ActionButton>
+                  )}
+                  {!canupvote(currentUserId, probId) && (
+                    <ActionButton variant="contained" color="success" disabled>
                       Upvote
                     </ActionButton>
                   )}
