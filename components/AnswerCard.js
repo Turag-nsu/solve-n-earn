@@ -17,7 +17,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import { useSession } from 'next-auth/react';
-import useSWR, { useMutation } from 'swr';
+import useSWR, { mutate } from 'swr';
 import Link from 'next/link';
 
 const theme = createTheme({
@@ -94,73 +94,12 @@ export default function AnswerCard({
           notification.logAnswerId === answerId &&
           notification.fromUserId === userId
       );
+      console.log(filteredNotifications);
       if (filteredNotifications.length > 0) {
         return false;
       } else {
         return true;
       }
-    }
-  };
-
-  const { mutate: upvoteAnswer } = useMutation(async () => {
-    try {
-      const userResponse = await fetch(`/api/user/${currentUserId}`);
-      const userData = await userResponse.json();
-      const respectPointsToAdd = userData.user.respectPoints * 0.1;
-
-      const upvoteGettingAnsId = answer.id;
-      const ansUpvoteResponse = await fetch(
-        `/api/problem/${problemId}/answer/${answer.id}?action=upvote`,
-        {
-          method: 'POST',
-          body: JSON.stringify({ respectPointsToAdd, currentUserId, upvoteGettingAnsId }),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (ansUpvoteResponse.ok) {
-        const notifyLog = await fetch('/api/notification', {
-          method: 'POST',
-          body: JSON.stringify({
-            fromUserId: currentUserId,
-            fromUserName: session.token.name,
-            toUserId: answer.userId,
-            logType: 'notification',
-            logAction: 'upvote',
-            logProblemId: problemId,
-            logAnswerId: answer.id,
-          }),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        const notifyData = await notifyLog.json();
-        console.log('Notification created successfully:', notifyData);
-        const upvoteData = await ansUpvoteResponse.json();
-        console.log('Upvote successful:', upvoteData);
-      }
-    } catch (error) {
-      console.error('Error upvoting:', error);
-    }
-  });
-
-  const handleUpvote = async () => {
-    if (!session) {
-      router.push('/login');
-      return;
-    }
-    setHasUpvoted(true);
-    if (canupvote(currentUserId, answer.id)) {
-      upvoteAnswer();
-    }
-  };
-
-  const handleDownvote = () => {
-    if (hasUpvoted) {
-      setUpvotes((prevUpvotes) => prevUpvotes - 1);
-      setHasUpvoted(false);
     }
   };
 
@@ -184,6 +123,70 @@ export default function AnswerCard({
     handleDeleteAnswer(answer.id);
   };
 
+  const handleUpvote = async () => {
+    if (!session) {
+      router.push('/login');
+      return;
+    }
+    setHasUpvoted(true);
+    if (canupvote(currentUserId, answer.id)) {
+      try {
+        const userResponse = await fetch(`/api/user/${currentUserId}`);
+        const userData = await userResponse.json();
+
+        const respectPointsToAdd = userData.user.respectPoints * 0.1;
+
+        setHasUpvoted(true);
+        setUpvotes((prevUpvotes) => prevUpvotes + 1);
+        const upvoteGettingAnsId = answer.id;
+        const ansUpvoteResponse = await fetch(
+          `/api/problem/${problemId}/answer/${answer.id}?action=upvote`,
+          {
+            method: 'POST',
+            body: JSON.stringify({ respectPointsToAdd, currentUserId, upvoteGettingAnsId }),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (ansUpvoteResponse.ok) {
+          const notifyLog = await fetch('/api/notification', {
+            method: 'POST',
+            body: JSON.stringify({
+              fromUserId: currentUserId,
+              fromUserName: session.token.name,
+              toUserId: answer.userId,
+              logType: 'notification',
+              logAction: 'upvote',
+              logProblemId: problemId,
+              logAnswerId: answer.id,
+            }),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          const notifyData = await notifyLog.json();
+          console.log('Notification created successfully:', notifyData);
+          const upvoteData = await ansUpvoteResponse.json();
+          console.log('Upvote successful:', upvoteData);
+
+          // Update the data using mutate
+          mutate(`/api/problem/${problemId}/answer/${answer.id}`);
+        }
+      } catch (error) {
+        console.error('Error upvoting:', error);
+      }
+    }
+  };
+
+  const handleDownvote = () => {
+    if (hasUpvoted) {
+      setUpvotes((prevUpvotes) => prevUpvotes - 1);
+      setHasUpvoted(false);
+    }
+  };
+
   const handleInputChange = (e) => {
     setEditedAnswer(e.target.value);
   };
@@ -191,16 +194,10 @@ export default function AnswerCard({
   const getAnswerActions = () => {
     if (currentUserId === answer.userId) {
       return (
-        <div style={{ margin: '2rem 0 0.5rem' }}>
+        <div style={{ margin: `2rem 0 0.5rem` }}>
           {isEditing ? (
             <>
-              <TextField
-                multiline
-                rows={2}
-                fullWidth
-                value={editedAnswer}
-                onChange={handleInputChange}
-              />
+              <TextField multiline rows={2} fullWidth value={editedAnswer} onChange={handleInputChange} />
               <Button onClick={handleSaveEdit} color="primary">
                 Save
               </Button>
@@ -229,51 +226,43 @@ export default function AnswerCard({
           <Typography variant="body2" color="text.secondary">
             {answer.body}
           </Typography>
-          <IconButton onClick={handleUpvote} disabled={hasUpvoted}>
+          <IconButton onClick={handleUpvote} disabled={hasUpvoted && canupvote(currentUserId, answer.id) }>
             <ThumbUpIcon />
           </IconButton>
           <Typography variant="caption" color="text.secondary">
             {upvotes}
           </Typography>
-          {/* <IconButton onClick={handleDownvote} disabled={!hasUpvoted}>
-            <ThumbUpIcon color={!hasUpvoted ? 'disabled' : 'primary'} />
-          </IconButton> */}
         </>
       );
     }
   };
 
-  const getUserAvatar = () => {
-    if (user && user.avatar) {
-      return (
-        <StyledAvatar alt={user.name} src={user.avatar} />
-      );
-    } else {
-      return (
-        <StyledAvatar alt={user.name}>
-          {user && user.name.charAt(0)}
-        </StyledAvatar>
-      );
-    }
+  const extractCreatedAt = (id) => {
+    const timestamp = parseInt(id.substring(0, 8), 16) * 1000;
+    return new Date(timestamp);
   };
 
   return (
     <ThemeProvider theme={theme}>
-      <StyledCard variant="outlined">
+      <StyledCard>
         <StyledCardContent>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            {getUserAvatar()}
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+            {user && <StyledAvatar alt={user.user.name} src={user.user.image} />}
             <Link href={`/profile/${answer.userId}`} passHref>
-              <Typography variant="subtitle2" component="a" color="primary">
-                {user ? user.name : 'Loading...'}
+              <Typography
+                variant="body2"
+                component="a"
+                sx={{ color: 'inherit', textDecoration: 'none' }}
+              >
+                {user ? user.user.name : 'Unknown User'}
               </Typography>
             </Link>
           </div>
-          <Typography variant="caption" color="text.secondary">
-            {formatDistanceToNow(new Date(answer.createdAt), { addSuffix: true })}
+          <Typography variant="body2" color="text.secondary">
+            {formatDistanceToNow(extractCreatedAt(answer.id))} ago
           </Typography>
+          {getAnswerActions()}
         </StyledCardContent>
-        <StyledCardContent>{getAnswerActions()}</StyledCardContent>
       </StyledCard>
     </ThemeProvider>
   );

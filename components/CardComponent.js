@@ -61,6 +61,7 @@ const CenteredCardContainer = styled(Box)({
 
 const ActionButton = styled(Button)(({ theme }) => ({
   marginRight: theme.spacing(1),
+  marginBottom: theme.spacing(1),
 }));
 
 function CardComponent(props) {
@@ -69,10 +70,9 @@ function CardComponent(props) {
   const router = useRouter();
   const { data: session } = useSession();
   const currentUserId = parseInt(session?.token?.sub)
-  const [isUpvoted, setIsUpvoted] = useState(false);
+  const [isUpvoted, setIsUpvoted] = useState(false); 
   const fetcher = (url) => fetch(url).then((res) => res.json());
   const handleOnMarkAsSolved = async () => {
-
     try {
       const response = await fetch(`/api/problem/${probId}?action=mark-as-solved`, {
         method: 'POST',
