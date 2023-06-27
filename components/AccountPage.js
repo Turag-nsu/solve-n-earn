@@ -50,15 +50,15 @@ function AccountPage({ user }) {
     }
   };
 
-  const handleDeleteAccount = async () => {
-    try {
-      await axios.delete(`/api/user/${user.id}`);
-      // Show success message or perform any other actions (e.g., redirect to another page)
-    } catch (error) {
-      console.error(error);
-      // Show error message or perform any other actions
-    }
-  };
+  // const handleDeleteAccount = async () => {
+  //   try {
+  //     await axios.delete(`/api/user/${user.id}`);
+  //     // Show success message or perform any other actions (e.g., redirect to another page)
+  //   } catch (error) {
+  //     console.error(error);
+  //     // Show error message or perform any other actions
+  //   }
+  // };
 
   return (
     <Box p={4}>
@@ -78,9 +78,9 @@ function AccountPage({ user }) {
             Update Name
           </SubmitButton>
         </Form>
-        <DeleteButton variant="contained" color='error' onClick={handleDeleteAccount}>
+        {/* <DeleteButton variant="contained" color='error' onClick={handleDeleteAccount}>
           Delete Account
-        </DeleteButton>
+        </DeleteButton> */}
       </AccountContainer>
     </Box>
   );

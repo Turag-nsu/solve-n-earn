@@ -1,26 +1,16 @@
-import { getSession } from 'next-auth/react';
-import AccountPage from '../components/AccountPage'
+import { useSession } from 'next-auth/react';
+import AccountPage from '../components/AccountPage';
 
-export default function Account({ user }) {
-  return <AccountPage user={user} />;
-}
+export default function Account() {
+  const { data: session, status } = useSession();
 
-export async function getServerSideProps(context) {
-  const {session} = await getSession(context);
-  const user = session?.user || null;
-
-  if (!user) {
-    return {
-      redirect: {
-        destination: '/login', // Redirect to the login page if user is not authenticated
-        permanent: false,
-      },
-    };
+  if (status === 'loading') {
+    return <div>Loading...</div>;
   }
 
-  return {
-    props: {
-      user,
-    },
-  };
+  if (!session) {
+    return <Redirect to="/login" />;
+  }
+console.log(session.session.user)
+  return <AccountPage user={session.session.user} />;
 }
