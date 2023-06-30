@@ -68,6 +68,13 @@ function CardComponent(props) {
 
   const { probId, title, tags, body, totalUpvotes, problemStatus, userName, createdAt, userId } = props;
   const router = useRouter();
+  const postingUser = () =>{
+    if (session && currentUserId === userId) {
+      return `You`;
+    } else {
+      return userName;
+    }
+  }
   const { data: session } = useSession();
   const currentUserId = parseInt(session?.token?.sub)
   const [isUpvoted, setIsUpvoted] = useState(false); 
@@ -257,7 +264,7 @@ function CardComponent(props) {
               <>
                 Posted by{' '}
                 <Link href={`/profile/${userId}`}>
-                  <Typography color="info.main">{userName}</Typography>
+                  <Typography color="info.main">{postingUser()}</Typography>
                 </Link>{' '}
                 • {createdAt}
               </>

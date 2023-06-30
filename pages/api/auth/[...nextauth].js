@@ -37,6 +37,8 @@ const options = {
           } else {
             
             user.id = existingUser.id;
+            user.name = existingUser.name;
+            user.image = existingUser.image;
           }
         }
 
@@ -49,6 +51,9 @@ const options = {
     async session(session, user) {
       if (user) {
         session.user.id = user.id;
+        session.user.name = user.name;
+        session.user.image = user.image;
+        
       }
 
       return session;
