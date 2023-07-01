@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import { formatDistanceToNow } from 'date-fns';
 import MarkAsUnreadIcon from '@mui/icons-material/MarkAsUnread';
@@ -15,7 +15,7 @@ import {
   Icon,
 } from '@mui/material';
 import { useSession } from 'next-auth/react';
-import axios from 'axios';
+// import axios from 'axios';
 import { styled } from '@mui/material/styles';
 import { useRouter } from 'next/router';
 
@@ -46,17 +46,36 @@ const StyledButton = styled(Button)(({ theme }) => ({
 }));
 
 function Notifications() {
-  const theme = useTheme();
-  const { data: session } = useSession();
-  const { data: notifications, error, mutate } = useSWR(`/api/notification?userId=${session?.token.sub}`, fetcher);
-
+  const theme = createTheme({
+    palette: {
+      mode: 'dark',
+      primary: {
+        main: '#ff5722',
+      },
+    },
+  });
+  const router = useRouter();
+  const { data: session, status } = useSession();
+  const [notifications, setNotifications] = useState([]);
+  const currentUserId = parseInt(session?.token?.sub);
+  console.log(currentUserId);
+  const fetcher = (url) => fetch(url).then((res) => res.json());
+  const { data: notificationData, error, mutate } = useSWR(`/api/notification?userId=${currentUserId}`, fetcher);
   useEffect(() => {
-    mutate(); // Refresh notifications after creating or updating
-  }, []);
-
+    if (notificationData) {
+      setNotifications(notificationData.notifications);
+    }
+  }, [notificationData]);
   const markAsRead = async (notificationId) => {
     try {
-      await axios.put(`/api/notification/${notificationId}`, { logStatus: 'read' });
+      const response = await fetch(`/api/notification?notificationId=${notificationId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ logStatus: 'read' }),
+      });
+      if (response.ok) console.log("Successfully marked as read");
       mutate(); // Refresh notifications after marking as read
     } catch (error) {
       console.error(error);
@@ -67,7 +86,7 @@ function Notifications() {
     return <Typography variant="body1">Failed to load notifications.</Typography>;
   }
 
-  if (!notifications) {
+  if (status === `loading`) {
     return <Typography variant="body1">Loading notifications...</Typography>;
   }
 
@@ -89,27 +108,29 @@ function Notifications() {
       },
     },
   });
-  const router = useRouter();
+
+  if(status === 'loading') return <Typography variant="body1">Loading notifications...</Typography>;
+  if(!notifications) return <Typography variant="body1">No notifications.</Typography>;
   return (
-    <ThemeProvider theme={customTheme}>
+    (Array.isArray(notifications))&&<ThemeProvider theme={customTheme}>
       <Box p={4}>
         <NotificationsContainer>
-          <Title variant="h4" gutterBottom color="primary"> 
+          <Title variant="h4" gutterBottom color="primary">
             Notifications
           </Title>
           <StyledList>
             {notifications.map((notification) => (
               <StyledListItem key={notification._id} unread={notification.logStatus === 'unread'}>
-                <a onClick={()=>{router.push(`problem/${notification.logProblemId}`)}}>
-                <ListItemText
-                  primaryTypographyProps={{ variant: 'subtitle1' , color: "secondary"}}
-                  primary={notification.logDetails}
-                  secondary={formatDistanceToNow(extractCreatedAt(notification._id), { addSuffix: true })}
-                />
+                <a onClick={() => { router.push(`problem/${notification.logProblemId}`) }}>
+                  <ListItemText
+                    primaryTypographyProps={{ variant: 'subtitle1', color: "secondary" }}
+                    primary={notification.logDetails}
+                    secondary={formatDistanceToNow(extractCreatedAt(notification._id), { addSuffix: true })}
+                  />
                 </a>
                 {notification.logStatus === 'unread' && (
                   <StyledButton variant="outlined" onClick={() => markAsRead(notification._id)}>
-                    <MarkAsUnreadIcon/>
+                    <MarkAsUnreadIcon />
                   </StyledButton>
                 )}
               </StyledListItem>
@@ -121,15 +142,5 @@ function Notifications() {
     </ThemeProvider>
   );
 }
-
-// Custom fetcher function for SWR
-const fetcher = async (url) => {
-  try {
-    const response = await axios.get(url);
-    return response.data.notifications;
-  } catch (error) {
-    throw new Error('Failed to fetch notifications');
-  }
-};
 
 export default Notifications;
