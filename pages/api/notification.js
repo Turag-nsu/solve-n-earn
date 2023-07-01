@@ -12,10 +12,11 @@ export default async function handler(req, res) {
             // Get notifications for the logged-in user
             const { userId } = req.query;
             if (req.query.action === 'check') {
-                const notifications = await Log.find({ fromUserId: userId, logAction: 'upvote', });
+                const forUserId = parseInt(userId);
+                const notifications = await Log.find({ fromUserId: forUserId, logAction: 'upvote', }).sort({ _id: -1 });
                 res.status(200).json({ notifications });
             } else {
-                const notifications = await Log.find({ toUserId: userId, logType: 'notification' }).sort({ createdAt: -1 });
+                const notifications = await Log.find({ toUserId: userId, logType: 'notification' }).sort({ _id: -1 });
                 res.status(200).json({ notifications });
             }
         } catch (error) {
@@ -30,8 +31,8 @@ export default async function handler(req, res) {
             // const { data: session } = await userSession(req, res);
 
             // Create a new notification
-            const { fromUserName, fromUserId, toUserId, logType, logAction, logProblemId, logAnswerId } = req.body;
-
+            let { fromUserName, fromUserId, toUserId, logType, logAction, logProblemId, logAnswerId } = req.body;
+            toUserId = parseInt(toUserId);
             let logDetails = '';
             if (logAction === 'upvote') {
                 logDetails = `${fromUserName} upvoted your answer`;

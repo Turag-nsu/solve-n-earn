@@ -12,10 +12,8 @@ import {
   ThemeProvider,
   Box,
   createTheme,
-  Icon,
 } from '@mui/material';
 import { useSession } from 'next-auth/react';
-// import axios from 'axios';
 import { styled } from '@mui/material/styles';
 import { useRouter } from 'next/router';
 
@@ -26,7 +24,6 @@ const NotificationsContainer = styled('div')(({ theme }) => ({
   boxShadow: theme.shadows[2],
   maxWidth: 500,
   margin: 'auto',
-  // setCursor: 'pointer',
 }));
 
 const Title = styled(Typography)(({ theme }) => ({
@@ -39,7 +36,14 @@ const StyledList = styled(List)(({ theme }) => ({
 
 const StyledListItem = styled(ListItem)(({ theme, unread }) => ({
   backgroundColor: unread ? theme.palette.action.hover : 'transparent',
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
 }));
+
+const StyledListItemText = styled(ListItemText)({
+  flex: '1',
+});
 
 const StyledButton = styled(Button)(({ theme }) => ({
   marginLeft: theme.spacing(1),
@@ -54,18 +58,21 @@ function Notifications() {
       },
     },
   });
+
   const router = useRouter();
   const { data: session, status } = useSession();
   const [notifications, setNotifications] = useState([]);
   const currentUserId = parseInt(session?.token?.sub);
-  console.log(currentUserId);
+
   const fetcher = (url) => fetch(url).then((res) => res.json());
   const { data: notificationData, error, mutate } = useSWR(`/api/notification?userId=${currentUserId}`, fetcher);
+
   useEffect(() => {
     if (notificationData) {
       setNotifications(notificationData.notifications);
     }
   }, [notificationData]);
+
   const markAsRead = async (notificationId) => {
     try {
       const response = await fetch(`/api/notification?notificationId=${notificationId}`, {
@@ -86,7 +93,7 @@ function Notifications() {
     return <Typography variant="body1">Failed to load notifications.</Typography>;
   }
 
-  if (status === `loading`) {
+  if (status === 'loading') {
     return <Typography variant="body1">Loading notifications...</Typography>;
   }
 
@@ -109,10 +116,11 @@ function Notifications() {
     },
   });
 
-  if(status === 'loading') return <Typography variant="body1">Loading notifications...</Typography>;
-  if(!notifications) return <Typography variant="body1">No notifications.</Typography>;
+  if (status === 'loading') return <Typography variant="body1">Loading notifications...</Typography>;
+  if (!notifications) return <Typography variant="body1">No notifications.</Typography>;
+
   return (
-    (Array.isArray(notifications))&&<ThemeProvider theme={customTheme}>
+    <ThemeProvider theme={customTheme}>
       <Box p={4}>
         <NotificationsContainer>
           <Title variant="h4" gutterBottom color="primary">
@@ -121,9 +129,9 @@ function Notifications() {
           <StyledList>
             {notifications.map((notification) => (
               <StyledListItem key={notification._id} unread={notification.logStatus === 'unread'}>
-                <a onClick={() => { router.push(`problem/${notification.logProblemId}`) }}>
-                  <ListItemText
-                    primaryTypographyProps={{ variant: 'subtitle1', color: "secondary" }}
+                <a onClick={() => router.push(`problem/${notification.logProblemId}`)}>
+                  <StyledListItemText
+                    primaryTypographyProps={{ variant: 'subtitle1', color: 'secondary' }}
                     primary={notification.logDetails}
                     secondary={formatDistanceToNow(extractCreatedAt(notification._id), { addSuffix: true })}
                   />

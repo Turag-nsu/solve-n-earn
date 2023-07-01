@@ -293,7 +293,7 @@ function CardComponent(props) {
                       Upvote
                     </ActionButton>
                   )}
-                  {!canupvote(currentUserId, probId) && (
+                  {(!canupvote(currentUserId, probId) || isUpvoted) && (
                     <ActionButton variant="contained" color="success" disabled>
                       Upvote
                     </ActionButton>
