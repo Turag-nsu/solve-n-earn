@@ -17,28 +17,31 @@ const options = {
       const dbuser = process.env.DB_USERNAME;
       const dbpass = process.env.DB_PASSWORD;
       connectToDatabase(dbuser, dbpass);
-      const { email, name, image } = profile;
-
+      const { email, name, picture } = profile;
+      console.log(profile);
       if (account.provider === 'google') {
         if (email.endsWith('@gmail.com')) {
           const existingUser = await userSchema.findOne({ email });
+          if (!existingUser.image) {
+            existingUser.image = picture;
+            await existingUser.save();
 
+          }
           if (!existingUser) {
             const newUser = await userSchema.create({
               id: Math.floor(Math.random() * 10000),
               name,
               email,
-              image,
+              image: picture,
               authProvider: 'google',
             });
-
-            
             user.id = newUser.id;
           } else {
-            
+
             user.id = existingUser.id;
             user.name = existingUser.name;
             user.image = existingUser.image;
+
           }
         }
 
@@ -53,7 +56,7 @@ const options = {
         session.user.id = user.id;
         session.user.name = user.name;
         session.user.image = user.image;
-        
+
       }
 
       return session;

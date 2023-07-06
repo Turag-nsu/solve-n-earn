@@ -3,6 +3,7 @@ import { formatDistanceToNow } from 'date-fns';
 import useSWR from 'swr';
 import CardComponent from '../../components/CardComponent';
 import AnimatedSearchBox from '@/components/AnimatedSearchBox';
+import { Skeleton } from '@mui/material';
 
 function fetcher(url) {
   return fetch(url).then((res) => res.json());
@@ -64,7 +65,14 @@ const ProblemIndex = () => {
   );
 
   if (!problems) {
-    return <div>Loading...</div>;
+    return (
+      <div>
+        <AnimatedSearchBox onSearch={handleSearch} />
+        <Skeleton variant="rectangular" width="80%" height={200} />
+        <Skeleton variant="rectangular" width="80%" height={200} />
+        <Skeleton variant="rectangular" width="80%" height={200} />
+      </div>
+    );
   }
 
   if (error) {

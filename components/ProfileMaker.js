@@ -31,6 +31,8 @@ const StyledAvatar = styled('div')(({ theme }) => ({
 }));
 
 const AvatarImage = styled('img')({
+  maxWidth: '114px',
+  maxHeight: '114px',
   width: '95%',
   height: '95%',
   objectFit: 'cover',

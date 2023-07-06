@@ -4,6 +4,7 @@ import { styled } from '@mui/material/styles';
 import { useSession, logout, signOut } from 'next-auth/react';
 // import {  as Logout } from 'next-auth';
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 const AccountContainer = styled('div')(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   padding: theme.spacing(2),
@@ -36,7 +37,7 @@ const DeleteButton = styled(Button)(({ theme }) => ({
 function AccountPage( {user, id} ) {
   const router = useRouter();
   const { data: session } = useSession();
-  console.log(user, id);
+  // console.log(user, id);
   // const { mutate } = useMutation();
   
   const [name, setName] = useState(user.name || '');
@@ -149,6 +150,7 @@ function AccountPage( {user, id} ) {
       <Dialog open={openConfirmation} onClose={handleConfirmationClose}>
         <DialogTitle>Success</DialogTitle>
         <DialogContent>
+          { confirmationType === 'image' && (<Image src={image} width={200} height={200} />) }
           <Typography>
             {confirmationType === 'name'
               ? 'Name has been updated successfully!'
