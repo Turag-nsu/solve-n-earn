@@ -8,10 +8,10 @@ const ProfileWrapper = ({ children }) => (
   </Box>
 );
 
-const Profile = ({ name, email, respectPoints, problems }) => {
+const Profile = ({ name, email, respectPoints, problems, image }) => {
   return (
     <ProfileWrapper>
-      <Avatar />
+      {image&&<Avatar path = {image}/>}
       <UserInfo name={name} email={email} respectPoints={respectPoints}/>
       <UserStats problems={problems} />
     </ProfileWrapper>

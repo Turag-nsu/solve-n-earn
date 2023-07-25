@@ -251,7 +251,7 @@ function CardComponent(props) {
 
   const { pathname } = useRouter();
   const isAllProblemPage = () => pathname === '/problem';
-
+  const ownProblem = () => currentUserId === userId;
   return (
     problemStatus !== 'solved' && (
       <CenteredCardContainer>
@@ -298,7 +298,7 @@ function CardComponent(props) {
                       Upvote
                     </ActionButton>
                   )}
-                  {isAllProblemPage() && (
+                  {!ownProblem() && (
                     <ActionButton variant="contained" color="secondary" onClick={onOpenProblem}>
                       Solve
                     </ActionButton>
@@ -317,11 +317,11 @@ function CardComponent(props) {
                   <ActionButton variant="contained" onClick={handleOnMarkAsSolved}>
                     Mark as Solved
                   </ActionButton>
-                  {isAllProblemPage() && (
+                  {
                     <ActionButton variant="contained" onClick={onOpenProblem}>
                       Open Problem
                     </ActionButton>
-                  )}
+                  }
                 </>
               )}
 

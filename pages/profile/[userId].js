@@ -36,7 +36,8 @@ const UserProfilePage = ({ initialData }) => {
   if (userError || problemsError) {
     return <Typography>Error fetching user data. Please try again later or contact our developer team.</Typography>;
   }
-
+  
+  // console.log(user?.image)
   return (
     <Profile
       name={user?.name}
@@ -44,6 +45,7 @@ const UserProfilePage = ({ initialData }) => {
       respectPoints={user?.respectPoints}
       problems={userProblems}
       onDeleteProblem={handleProblemDelete}
+      image={user?.image}
     />
   );
 };
@@ -55,7 +57,6 @@ export async function getStaticPaths() {
   const paths = usersData?.map((user) => ({
     params: { userId: user.id.toString() },
   }));
-
   return {
     paths,
     fallback: true,

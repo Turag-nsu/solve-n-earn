@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     
 
    
-    const problems = await Question.find().sort({ time: -1 }).exec();
+    const problems = await Question.find().sort({ _id: -1 }).exec();
 
     res.status(200).json(problems);
   } catch (error) {

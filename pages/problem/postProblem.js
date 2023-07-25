@@ -49,7 +49,7 @@ const PostProblem = () => {
           'Content-Type': 'application/json',
         },
       });
-
+      console.log(response);
       if (response.ok) {
         router.push('/problem');
       } else {
