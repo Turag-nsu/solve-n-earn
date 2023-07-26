@@ -6,7 +6,6 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-   
     "lint": "next lint"
   },
   "dependencies": {
@@ -16,6 +15,8 @@
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.11.16",
     "@mui/material": "^5.13.2",
+    "bard-ai": "^1.5.4",
+    "date-fns": "^2.30.0",
     "mongoose": "^7.2.2",
     "next": "13.4.3",
     "next-auth": "^4.22.1",

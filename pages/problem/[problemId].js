@@ -5,6 +5,7 @@ import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import { Container, Typography, TextField, Button, useMediaQuery } from '@mui/material';
 import { formatDistanceToNow } from 'date-fns';
 import useSWR, { mutate } from 'swr';
+import Bard, { askAI } from 'bard-ai';
 
 import CardComponent from '../../components/CardComponent';
 import AnswerCard from '../../components/AnswerCard';
@@ -57,16 +58,12 @@ export default function ProblemPage({ initialProblemData, initialUserData }) {
     fetcher,
     { initialData: initialUserData } // Set initial data from props
   );
-  
-  const handleSubmit = async (e) => {
-    console.log('Submitting answer...');
-    e.preventDefault();
-    if (answer.length <10 ) return;
+  const postAnswer = async (answer, id) => {
     try {
       const response = await fetch(`/api/problem/${problemId}/answer`, {
         method: 'POST',
         body: JSON.stringify({
-          answeringUserId: session?.token?.sub,
+          answeringUserId: id,
           answerBody: answer,
         }),
         headers: {
@@ -78,7 +75,6 @@ export default function ProblemPage({ initialProblemData, initialUserData }) {
         console.log('Answer submitted successfully');
         mutateProblemData(); // Trigger revalidation of problem data
         mutateUserData(); // Trigger revalidation of user data
-        
         setAnswer('');
       } else {
         console.error('Error submitting answer:', response.statusText);
@@ -86,6 +82,12 @@ export default function ProblemPage({ initialProblemData, initialUserData }) {
     } catch (error) {
       console.error('Error submitting answer:', error);
     }
+  };
+  const handleSubmit = async (e) => {
+    console.log('Submitting answer...');
+    e.preventDefault();
+    if (answer.length <10 ) return;
+    postAnswer(answer, session?.token?.sub);
   };
 
   const handleAnswerUpdate = async (answerId, newAnswerBody) => {
@@ -138,6 +140,15 @@ export default function ProblemPage({ initialProblemData, initialUserData }) {
     }
   };
 
+  const generateAIAnswer = async () => {
+    // console.log('Generating AI answer...');
+    await Bard.init(process.env.BARD_COOKIE_SECRET);
+    //the prompt should contain the problem title, tags, and body
+    const allTags = problemData.tags.join(", ");
+    const prompt = `This is a problem about ${allTags}. now answer "${problemData.body}"`;
+    postAnswer(await askAI(prompt), 1000);
+  }
+
   const createdAt = problemData ? new Date(parseInt(problemData._id.toString().substring(0, 8), 16) * 1000) : null;
   const formattedCreatedAt = createdAt ? formatDistanceToNow(createdAt, { addSuffix: true }) : null;
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -163,6 +174,9 @@ export default function ProblemPage({ initialProblemData, initialUserData }) {
             <StyledTypography variant="h6" component="h3" align="center">
               Answers
             </StyledTypography>
+            <StyledButton onClick = {generateAIAnswer} type="submit" variant="contained" color="primary">
+                Generate AI Answer
+            </StyledButton>
             {problemData.answers.map((answer) => (
               <AnswerCard
                 key={answer.id}

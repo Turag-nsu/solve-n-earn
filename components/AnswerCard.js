@@ -45,7 +45,7 @@ const StyledCardActions = styled(CardActions)(({ theme }) => ({
 const StyledAvatar = styled(Avatar)(({ theme }) => ({
   marginRight: theme.spacing(1),
   height: '30px',
-  width: '10px',
+  width: '30px',
 }));
 
 const fetcher = async (url) => {
